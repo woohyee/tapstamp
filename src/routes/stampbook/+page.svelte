@@ -128,10 +128,20 @@
   
   function closeWindow(): void {
     // 브라우저 창 닫기 시도
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.close();
+    try {
+      // 모바일에서 앱 닫기
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.close();
+      }
+      
+      // 추가적으로 홈페이지로 이동 (닫기가 안 될 경우)
+      setTimeout(() => {
+        window.location.href = 'about:blank';
+      }, 100);
+    } catch (error) {
+      console.log('Unable to close window');
     }
   }
   
@@ -282,7 +292,7 @@
   /* 개선된 Nice to see you 페이지 스타일 */
   .nice-to-see-container {
     background: #F9FAFB; /* Soft White */
-    padding: 2.5rem 1.5rem;
+    padding: 1.8rem 1.5rem;
     border-radius: 20px;
     border: 2px solid #5CD6C0; /* Mint Green */
     max-width: 340px;
@@ -311,6 +321,13 @@
     margin-bottom: 0.5rem;
   }
 
+  .welcome-back {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #5CD6C0; /* Mint Green */
+  }
+
   .headline {
     font-size: 1.4rem;
     font-weight: bold;
@@ -321,7 +338,7 @@
   .subtext {
     font-size: 1rem;
     color: #1C1E21; /* Charcoal Black */
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     opacity: 0.8;
   }
 
@@ -330,9 +347,9 @@
     color: #1C1E21; /* Charcoal Black */
     font-size: 3rem;
     font-weight: bold;
-    padding: 1rem 0;
+    padding: 0.7rem 0;
     border-radius: 16px;
-    margin: 1.2rem 0;
+    margin: 0.8rem 0;
     box-shadow: 0 8px 0 #E6B533; /* 더 진한 Yellow 그림자 */
     transform: scale(1.03);
   }
@@ -351,18 +368,18 @@
   .stamp-caption {
     font-size: 0.9rem;
     color: #1C1E21; /* Charcoal Black */
-    margin-bottom: 1rem;
+    margin-bottom: 0.6rem;
     opacity: 0.7;
   }
 
   .button {
-    padding: 0.75rem 1.2rem;
+    padding: 0.6rem 1.2rem;
     border-radius: 12px;
     font-weight: bold;
     font-size: 1rem;
     border: none;
     cursor: pointer;
-    margin-top: 0.6rem;
+    margin-top: 0.4rem;
     width: 100%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     transition: all 0.2s;
@@ -508,7 +525,7 @@
 </style>
 
 <div class="min-h-screen flex items-center justify-center p-4" style="background-color: #F9FAFB;">
-  <div class="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full border-4 border-gray-800">
+  <div class="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full">
     
     {#if isFirstVisit && welcomeVisible}
       <!-- 새로운 웰컴 애니메이션 페이지 -->
@@ -546,8 +563,8 @@
         <div class="logo-container">
           <img src="/tapstamplogo.png" alt="TapStamp Logo" class="logo" />
         </div>
+        <div class="welcome-back">Welcome back, {currentUser?.name || 'User'}!</div>
         <div class="headline">Stamp Collected!</div>
-        <div class="subtext">You've just earned a new stamp. Keep it going! 🏅</div>
 
         <div class="stamp-box">
           {#if loading}
@@ -558,10 +575,8 @@
         </div>
         <div class="stamp-caption">Total stamps collected</div>
 
-        <button class="button view-btn" onclick={openDetails}>👀 View Details</button>
+        <button class="button view-btn" onclick={openDetails}>📖 View Stampbook</button>
         <button class="button close-btn" onclick={closeWindow}>📘 Close</button>
-
-        <div class="footer">This is {currentUser?.name || 'Your'}'s Stamp Book</div>
       </div>
     {/if}
     
