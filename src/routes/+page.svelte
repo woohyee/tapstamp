@@ -6,8 +6,8 @@
   });
 </script>
 
-<div class="min-h-screen flex items-center justify-center p-4" style="background-color: #F9FAFB;">
-  <div class="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+<div class="min-h-screen flex items-center justify-center p-2 sm:p-4" style="background-color: #F9FAFB;">
+  <div class="bg-white rounded-3xl shadow-xl p-4 sm:p-8 max-w-md w-full text-center">
     
     <!-- 로고 -->
     <div class="mb-6">

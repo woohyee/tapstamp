@@ -292,14 +292,24 @@
   /* 개선된 Nice to see you 페이지 스타일 */
   .nice-to-see-container {
     background: #F9FAFB; /* Soft White */
-    padding: 1.8rem 1.5rem;
+    padding: 1.5rem 1rem;
     border-radius: 20px;
     border: 2px solid #5CD6C0; /* Mint Green */
+    max-width: 90vw;
+    width: 100%;
     max-width: 340px;
-    margin: 2rem auto;
+    margin: 1rem auto;
     text-align: center;
     font-family: 'Segoe UI', sans-serif;
     box-shadow: 0 10px 30px rgba(28, 30, 33, 0.08);
+  }
+
+  @media (max-width: 480px) {
+    .nice-to-see-container {
+      padding: 1.2rem 0.8rem;
+      margin: 0.5rem auto;
+      border-radius: 16px;
+    }
   }
 
   .logo-container {
@@ -310,10 +320,16 @@
   }
 
   .logo {
-    height: 120px;
+    height: 100px;
     width: auto;
     object-fit: contain;
     filter: drop-shadow(0 3px 8px rgba(28, 30, 33, 0.1));
+  }
+
+  @media (max-width: 480px) {
+    .logo {
+      height: 80px;
+    }
   }
 
   .emoji {
@@ -335,6 +351,18 @@
     color: #1C1E21; /* Charcoal Black */
   }
 
+  @media (max-width: 480px) {
+    .welcome-back {
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+    
+    .headline {
+      font-size: 1.2rem;
+      margin-bottom: 0.2rem;
+    }
+  }
+
   .subtext {
     font-size: 1rem;
     color: #1C1E21; /* Charcoal Black */
@@ -345,13 +373,22 @@
   .stamp-box {
     background: #FFC940; /* Stamp Yellow */
     color: #1C1E21; /* Charcoal Black */
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: bold;
-    padding: 0.7rem 0;
+    padding: 0.6rem 0;
     border-radius: 16px;
-    margin: 0.8rem 0;
-    box-shadow: 0 8px 0 #E6B533; /* 더 진한 Yellow 그림자 */
-    transform: scale(1.03);
+    margin: 0.6rem 0;
+    box-shadow: 0 6px 0 #E6B533; /* 더 진한 Yellow 그림자 */
+    transform: scale(1.02);
+  }
+
+  @media (max-width: 480px) {
+    .stamp-box {
+      font-size: 2.2rem;
+      padding: 0.5rem 0;
+      margin: 0.5rem 0;
+      box-shadow: 0 4px 0 #E6B533;
+    }
   }
 
   .loading-text {
@@ -385,6 +422,14 @@
     transition: all 0.2s;
     position: relative;
     transform: translateY(0);
+  }
+
+  @media (max-width: 480px) {
+    .button {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
   }
 
   .view-btn {
@@ -524,8 +569,8 @@
   }
 </style>
 
-<div class="min-h-screen flex items-center justify-center p-4" style="background-color: #F9FAFB;">
-  <div class="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full">
+<div class="min-h-screen flex items-center justify-center p-2 sm:p-4" style="background-color: #F9FAFB;">
+  <div class="bg-white rounded-3xl shadow-xl p-4 sm:p-8 max-w-md w-full">
     
     {#if isFirstVisit && welcomeVisible}
       <!-- 새로운 웰컴 애니메이션 페이지 -->
