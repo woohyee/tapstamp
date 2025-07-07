@@ -19,7 +19,7 @@ export default function AdminPage() {
           const expiryTime = parseInt(adminExpiry)
           if (Date.now() < expiryTime) {
             // 유효한 토큰 - 바로 관리자 기능으로
-            // setIsAuthenticated(true)
+            setIsAuthenticated(true)
             setAuthLoading(false)
             return
           } else {
@@ -53,7 +53,7 @@ export default function AdminPage() {
   const [showStampHistory, setShowStampHistory] = useState(false)
   const [stampHistory, setStampHistory] = useState<Array<{id: string; created_at: string}>>([])
   // const [directStampCount, setDirectStampCount] = useState('')
-  // const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [needsPassword, setNeedsPassword] = useState(false)
   const [password, setPassword] = useState('')
@@ -401,7 +401,7 @@ export default function AdminPage() {
       localStorage.setItem('tagstamp_admin_token', adminToken)
       localStorage.setItem('tagstamp_admin_expiry', expiryTime.toString())
       
-      // setIsAuthenticated(true)
+      setIsAuthenticated(true)
       setNeedsPassword(false)
       setPassword('')
       setError(null)
@@ -413,7 +413,7 @@ export default function AdminPage() {
   const handleLogout = () => {
     localStorage.removeItem('tagstamp_admin_token')
     localStorage.removeItem('tagstamp_admin_expiry')
-    // setIsAuthenticated(false)
+    setIsAuthenticated(false)
     setNeedsPassword(true)
     resetForm()
   }
@@ -485,7 +485,7 @@ export default function AdminPage() {
   }
 
   // 관리자 대시보드 메인
-  if (step === 'dashboard') {
+  if (isAuthenticated && step === 'dashboard') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="max-w-sm mx-auto px-4 py-8">
@@ -563,7 +563,7 @@ export default function AdminPage() {
   }
 
   // 스탬프 적립 - 검색 단계
-  if (step === 'search') {
+  if (isAuthenticated && step === 'search') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
@@ -623,7 +623,7 @@ export default function AdminPage() {
   }
 
   // 확인 단계
-  if (step === 'confirm' && customer) {
+  if (isAuthenticated && step === 'confirm' && customer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
@@ -706,7 +706,7 @@ export default function AdminPage() {
   }
 
   // 고객 관리 - 검색 단계
-  if (step === 'customer-edit') {
+  if (isAuthenticated && step === 'customer-edit') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
@@ -769,7 +769,7 @@ export default function AdminPage() {
   }
 
   // 편집 단계
-  if (step === 'edit' && customer) {
+  if (isAuthenticated && step === 'edit' && customer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
@@ -924,7 +924,7 @@ export default function AdminPage() {
   }
 
   // 완료 단계
-  if (step === 'complete' && customer) {
+  if (isAuthenticated && step === 'complete' && customer) {
     return (
       <div className="min-h-screen bg-green-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
