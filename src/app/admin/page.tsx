@@ -19,7 +19,7 @@ export default function AdminPage() {
           const expiryTime = parseInt(adminExpiry)
           if (Date.now() < expiryTime) {
             // 유효한 토큰 - 바로 관리자 기능으로
-            setIsAuthenticated(true)
+            // setIsAuthenticated(true)
             setAuthLoading(false)
             return
           } else {
@@ -401,7 +401,7 @@ export default function AdminPage() {
       localStorage.setItem('tagstamp_admin_token', adminToken)
       localStorage.setItem('tagstamp_admin_expiry', expiryTime.toString())
       
-      setIsAuthenticated(true)
+      // setIsAuthenticated(true)
       setNeedsPassword(false)
       setPassword('')
       setError(null)
@@ -413,7 +413,7 @@ export default function AdminPage() {
   const handleLogout = () => {
     localStorage.removeItem('tagstamp_admin_token')
     localStorage.removeItem('tagstamp_admin_expiry')
-    setIsAuthenticated(false)
+    // setIsAuthenticated(false)
     setNeedsPassword(true)
     resetForm()
   }
