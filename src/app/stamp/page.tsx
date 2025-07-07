@@ -16,7 +16,7 @@ export default function StampPage() {
 
   useEffect(() => {
     checkCustomerAndProcess()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkCustomerAndProcess = async () => {
     try {
@@ -126,33 +126,33 @@ export default function StampPage() {
     }
   }
 
-  const getCustomerStats = async (customerId: string) => {
-    try {
-      const { data: allStamps } = await supabase
-        .from('stamps')
-        .select('*')
-        .eq('customer_id', customerId)
-        .order('created_at', { ascending: false })
+  // const getCustomerStats = async (customerId: string) => {
+  //   try {
+  //     const { data: allStamps } = await supabase
+  //       .from('stamps')
+  //       .select('*')
+  //       .eq('customer_id', customerId)
+  //       .order('created_at', { ascending: false })
 
-      const { data: usedCoupons } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('customer_id', customerId)
-        .eq('used', true)
+  //     const { data: usedCoupons } = await supabase
+  //       .from('coupons')
+  //       .select('*')
+  //       .eq('customer_id', customerId)
+  //       .eq('used', true)
 
-      return {
-        totalStamps: allStamps?.length || 0,
-        usedStamps: usedCoupons?.length || 0,
-        currentStamps: customer?.stamps || 0
-      }
-    } catch {
-      return {
-        totalStamps: customer?.stamps || 0,
-        usedStamps: 0,
-        currentStamps: customer?.stamps || 0
-      }
-    }
-  }
+  //     return {
+  //       totalStamps: allStamps?.length || 0,
+  //       usedStamps: usedCoupons?.length || 0,
+  //       currentStamps: customer?.stamps || 0
+  //     }
+  //   } catch {
+  //     return {
+  //       totalStamps: customer?.stamps || 0,
+  //       usedStamps: 0,
+  //       currentStamps: customer?.stamps || 0
+  //     }
+  //   }
+  // }
 
   const checkAndIssueCoupons = async (customer: { id: string; stamps: number }) => {
     const stamps = customer.stamps

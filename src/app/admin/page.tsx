@@ -48,12 +48,12 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [step, setStep] = useState<'dashboard' | 'search' | 'confirm' | 'complete' | 'edit' | 'customer-edit'>('dashboard')
-  const [showMenu, setShowMenu] = useState(false)
+  // const [showMenu, setShowMenu] = useState(false)
   const [editData, setEditData] = useState({ name: '', phone: '', email: '' })
   const [showStampHistory, setShowStampHistory] = useState(false)
-  const [stampHistory, setStampHistory] = useState<any[]>([])
+  const [stampHistory, setStampHistory] = useState<Array<{id: string; created_at: string}>>([])
   const [directStampCount, setDirectStampCount] = useState('')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  // const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [needsPassword, setNeedsPassword] = useState(false)
   const [password, setPassword] = useState('')
@@ -215,16 +215,16 @@ export default function AdminPage() {
     setShowMenu(false)
   }
 
-  const startEdit = () => {
-    if (customer) {
-      setEditData({
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email || ''
-      })
-      setStep('edit')
-    }
-  }
+  // const startEdit = () => {
+  //   if (customer) {
+  //     setEditData({
+  //       name: customer.name,
+  //       phone: customer.phone,
+  //       email: customer.email || ''
+  //     })
+  //     setStep('edit')
+  //   }
+  // }
 
   const showCustomerInfo = () => {
     if (customer) {
@@ -276,37 +276,37 @@ export default function AdminPage() {
     }
   }
 
-  const deleteCustomer = async () => {
-    if (!customer) return
-    
-    if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
-      return
-    }
-    
-    setLoading(true)
-    setError(null)
-    
-    try {
-      // Delete related records first
-      await supabase.from('stamps').delete().eq('customer_id', customer.id)
-      await supabase.from('coupons').delete().eq('customer_id', customer.id)
-      
-      // Delete customer
-      const { error: deleteError } = await supabase
-        .from('customers')
-        .delete()
-        .eq('id', customer.id)
+  // const deleteCustomer = async () => {
+  //   if (!customer) return
+  //   
+  //   if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
+  //     return
+  //   }
+  //   
+  //   setLoading(true)
+  //   setError(null)
+  //   
+  //   try {
+  //     // Delete related records first
+  //     await supabase.from('stamps').delete().eq('customer_id', customer.id)
+  //     await supabase.from('coupons').delete().eq('customer_id', customer.id)
+  //     
+  //     // Delete customer
+  //     const { error: deleteError } = await supabase
+  //       .from('customers')
+  //       .delete()
+  //       .eq('id', customer.id)
 
-      if (deleteError) throw deleteError
+  //     if (deleteError) throw deleteError
 
-      setSuccess('Customer deleted successfully')
-      resetForm()
-    } catch {
-      setError('Failed to delete customer')
-    } finally {
-      setLoading(false)
-    }
-  }
+  //     setSuccess('Customer deleted successfully')
+  //     resetForm()
+  //   } catch {
+  //     setError('Failed to delete customer')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   const getStampHistory = async () => {
     if (!customer) return
@@ -357,37 +357,37 @@ export default function AdminPage() {
     }
   }
 
-  const updateStampCount = async () => {
-    if (!customer || !directStampCount) return
-    
-    const newCount = parseInt(directStampCount)
-    if (isNaN(newCount) || newCount < 0) {
-      setError('Please enter a valid number')
-      return
-    }
+  // const updateStampCount = async () => {
+  //   if (!customer || !directStampCount) return
+  //   
+  //   const newCount = parseInt(directStampCount)
+  //   if (isNaN(newCount) || newCount < 0) {
+  //     setError('Please enter a valid number')
+  //     return
+  //   }
 
-    setLoading(true)
-    try {
-      await supabase
-        .from('customers')
-        .update({ stamps: newCount })
-        .eq('id', customer.id)
+  //   setLoading(true)
+  //   try {
+  //     await supabase
+  //       .from('customers')
+  //       .update({ stamps: newCount })
+  //       .eq('id', customer.id)
 
-      const { data: updatedCustomer } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('id', customer.id)
-        .single()
+  //     const { data: updatedCustomer } = await supabase
+  //       .from('customers')
+  //       .select('*')
+  //       .eq('id', customer.id)
+  //       .single()
 
-      setCustomer(updatedCustomer)
-      setDirectStampCount('')
-      setSuccess(`Stamp count updated to ${newCount}`)
-    } catch {
-      setError('Failed to update stamp count')
-    } finally {
-      setLoading(false)
-    }
-  }
+  //     setCustomer(updatedCustomer)
+  //     setDirectStampCount('')
+  //     setSuccess(`Stamp count updated to ${newCount}`)
+  //   } catch {
+  //     setError('Failed to update stamp count')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   const handlePasswordAuth = () => {
     // 간단한 비밀번호 검증 (실제로는 더 복잡한 검증 필요)
