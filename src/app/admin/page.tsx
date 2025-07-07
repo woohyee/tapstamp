@@ -52,7 +52,7 @@ export default function AdminPage() {
   const [editData, setEditData] = useState({ name: '', phone: '', email: '' })
   const [showStampHistory, setShowStampHistory] = useState(false)
   const [stampHistory, setStampHistory] = useState<Array<{id: string; created_at: string}>>([])
-  const [directStampCount, setDirectStampCount] = useState('')
+  // const [directStampCount, setDirectStampCount] = useState('')
   // const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [needsPassword, setNeedsPassword] = useState(false)
