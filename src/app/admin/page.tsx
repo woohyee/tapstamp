@@ -212,7 +212,7 @@ export default function AdminPage() {
     setEditData({ name: '', phone: '', email: '' })
     setPassword('')
     setNeedsPassword(false)
-    setShowMenu(false)
+    // setShowMenu(false)
   }
 
   // const startEdit = () => {
