@@ -6,6 +6,9 @@ import { Customer, CustomerRegistration } from '@/types'
 import CustomerForm from '@/components/CustomerForm'
 import Logo from '@/components/Logo'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [loading, setLoading] = useState(true)
