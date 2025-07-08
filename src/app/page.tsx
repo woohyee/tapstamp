@@ -16,6 +16,7 @@ export default function Home() {
   const [completed, setCompleted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
+  const [stampProcessed, setStampProcessed] = useState(false)
 
   useEffect(() => {
     checkCustomerAndProcess()
@@ -47,15 +48,28 @@ export default function Home() {
         return
       }
 
+      // 기존 고객 - 세션에서 이미 처리되었는지 확인
+      const sessionKey = `stamp_processed_${customerId}_${Date.now().toString().slice(0, -5)}` // 5분 단위로 구분
+      const alreadyProcessed = sessionStorage.getItem(sessionKey)
+      
+      if (alreadyProcessed) {
+        // 이미 이번 세션에서 스탬프 처리됨 - 정보만 표시
+        setCustomer(data)
+        setCompleted(true)
+        setStampProcessed(true)
+        setLoading(false)
+        return
+      }
+
       // 기존 고객 - 즉시 스탬프 적립
-      await addStampToExistingCustomer(data)
+      await addStampToExistingCustomer(data, sessionKey)
     } catch {
       setError('System error occurred.')
       setLoading(false)
     }
   }
 
-  const addStampToExistingCustomer = async (customerData: Customer) => {
+  const addStampToExistingCustomer = async (customerData: Customer, sessionKey: string) => {
     try {
       const newStampCount = customerData.stamps + 1
       const shouldBecomeVip = newStampCount >= 30 && !customerData.vip_status
@@ -86,6 +100,9 @@ export default function Home() {
 
       // 쿠폰 발급 체크
       await checkAndIssueCoupons(updatedCustomer)
+
+      // 세션에 처리 완료 표시
+      sessionStorage.setItem(sessionKey, 'true')
 
       setCustomer(updatedCustomer)
       setCompleted(true)
@@ -280,6 +297,16 @@ export default function Home() {
                   Your first stamp has been added.
                 </p>
               </>
+            ) : stampProcessed ? (
+              <>
+                <h1 className="text-xl font-bold mb-3 text-blue-600">
+                  Welcome Back! 👋
+                </h1>
+                <p className="text-gray-600 mb-4 text-sm">
+                  Hello {customer.name}!<br/>
+                  Your current stamp count is shown below.
+                </p>
+              </>
             ) : (
               <>
                 <h1 className="text-xl font-bold mb-3 text-yellow-600">
@@ -322,7 +349,7 @@ export default function Home() {
             )}
 
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => window.close()}
               className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
             >
               Done
