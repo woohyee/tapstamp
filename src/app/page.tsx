@@ -1,5 +1,4 @@
-import { notFound } from 'next/navigation'
-
-export default function HomePage() {
-  notFound()
+// src/app/page.tsx
+export default function Home() {
+  return <div>Welcome to Tapstamp!</div>;
 }
