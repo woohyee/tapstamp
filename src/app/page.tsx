@@ -215,10 +215,10 @@ export default function Home() {
 
   if (isNewCustomer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="h-screen bg-gray-50 flex items-start justify-center px-4 pt-8">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8">
-            <Logo size="lg" className="justify-center mb-6" />
+            <Logo size="lg" showText={false} className="justify-center mb-4" />
             <h1 className="text-2xl font-bold text-center mb-4 text-gray-800">
               Welcome!
             </h1>
@@ -349,7 +349,19 @@ export default function Home() {
             )}
 
             <button
-              onClick={() => window.close()}
+              onClick={() => {
+                // 브라우저 종료 시도
+                if (window.opener) {
+                  window.close()
+                } else {
+                  // 종료되지 않으면 뒤로가기 또는 홈으로
+                  if (window.history.length > 1) {
+                    window.history.back()
+                  } else {
+                    window.location.href = 'about:blank'
+                  }
+                }
+              }}
               className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
             >
               Done
