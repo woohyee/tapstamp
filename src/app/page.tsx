@@ -215,10 +215,10 @@ export default function Home() {
 
   if (isNewCustomer) {
     return (
-      <div className="h-screen bg-gray-50 flex items-start justify-center px-4 pt-8">
+      <div className="h-screen bg-gray-50 flex items-start justify-center px-4 pt-0">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <Logo size="lg" showText={false} className="justify-center mb-4" />
+          <div className="bg-white rounded-lg shadow-lg px-8 pt-0 pb-8">
+            <Logo size="lg" showText={false} className="justify-center mb-0" />
             <h1 className="text-2xl font-bold text-center mb-4 text-gray-800">
               Welcome!
             </h1>
