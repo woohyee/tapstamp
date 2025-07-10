@@ -230,6 +230,11 @@ export default function StampPage() {
             <div className="-my-4">
               <Logo size="xl" showText={false} className="justify-center h-40" />
             </div>
+            <div className="text-center mb-2">
+              <p className="text-sm text-gray-500 font-medium">
+                dodo cleaners
+              </p>
+            </div>
             <div className="-mt-1">
               <h1 className="text-lg font-bold text-center mb-0 text-gray-800">
                 Welcome!
