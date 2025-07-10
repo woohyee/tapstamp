@@ -224,19 +224,23 @@ export default function StampPage() {
 
   if (isNewCustomer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-4 py-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-2 py-0">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl px-6 py-6 border border-orange-100">
-            <div className="mb-4">
-              <Logo size="xl" showText={false} className="justify-center mb-2" />
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100">
+            <div className="py-1">
+              <Logo size="xl" showText={false} className="justify-center" />
             </div>
-            <h1 className="text-lg font-bold text-center mb-1 text-gray-800">
-              Welcome!
-            </h1>
-            <p className="text-center text-gray-600 mb-4 text-sm">
-              Enter your information to receive your first stamp
-            </p>
-            <CustomerForm onSubmit={handleNewCustomerRegistration} />
+            <div className="-mt-1">
+              <h1 className="text-lg font-bold text-center mb-0 text-gray-800">
+                Welcome!
+              </h1>
+              <p className="text-center text-gray-600 mb-3 text-sm">
+                Enter your information to receive your first stamp
+              </p>
+            </div>
+            <div className="pb-4">
+              <CustomerForm onSubmit={handleNewCustomerRegistration} />
+            </div>
           </div>
         </div>
       </div>
@@ -293,34 +297,36 @@ export default function StampPage() {
     }
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-4 py-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-2 py-0">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl px-6 py-6 text-center border border-orange-100">
-            <div className="mb-3">
-              <Logo size="xl" showText={false} className="justify-center mb-2" />
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-0 text-center border border-orange-100">
+            <div className="py-1">
+              <Logo size="xl" showText={false} className="justify-center" />
             </div>
             
-            {isFirst ? (
-              <>
-                <h1 className="text-lg font-bold mb-1 text-orange-600">
-                  Registration Complete! 🎉
-                </h1>
-                <p className="text-gray-600 mb-4 text-sm">
-                  Welcome {customer.name}!<br/>
-                  Your first stamp has been added.
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="text-lg font-bold mb-1 text-orange-600">
-                  Stamp Added! ⭐
-                </h1>
-                <p className="text-gray-600 mb-4 text-sm">
-                  Thank you for visiting again, {customer.name}!<br/>
-                  Your stamp has been added.
-                </p>
-              </>
-            )}
+            <div className="-mt-1 pb-4">
+              {isFirst ? (
+                <>
+                  <h1 className="text-lg font-bold mb-0 text-orange-600">
+                    Registration Complete! 🎉
+                  </h1>
+                  <p className="text-gray-600 mb-3 text-sm">
+                    Welcome {customer.name}!<br/>
+                    Your first stamp has been added.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-lg font-bold mb-0 text-orange-600">
+                    Stamp Added! ⭐
+                  </h1>
+                  <p className="text-gray-600 mb-3 text-sm">
+                    Thank you for visiting again, {customer.name}!<br/>
+                    Your stamp has been added.
+                  </p>
+                </>
+              )}
+            </div>
             
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
               <div className="text-3xl font-bold text-yellow-600 mb-1">
