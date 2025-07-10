@@ -223,14 +223,14 @@ export default function StampPage() {
 
   if (isNewCustomer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center px-4 py-8">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <Logo size="lg" className="justify-center mb-6" />
-            <h1 className="text-2xl font-bold text-center mb-4 text-gray-800">
+          <div className="bg-white rounded-lg shadow-lg px-6 py-6">
+            <Logo size="md" className="justify-center mb-4" />
+            <h1 className="text-xl font-bold text-center mb-3 text-gray-800">
               Welcome!
             </h1>
-            <p className="text-center text-gray-600 mb-8">
+            <p className="text-center text-gray-600 mb-6 text-sm">
               Enter your information to receive your first stamp
             </p>
             <CustomerForm onSubmit={handleNewCustomerRegistration} />

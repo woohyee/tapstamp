@@ -55,9 +55,9 @@ export default function CustomerForm({ onSubmit }: CustomerFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
           Name *
         </label>
         <input
@@ -67,13 +67,13 @@ export default function CustomerForm({ onSubmit }: CustomerFormProps) {
           value={formData.name}
           onChange={handleChange}
           required
-className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base"
           placeholder="Enter your name"
         />
       </div>
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
           Phone Number *
         </label>
         <input
@@ -83,13 +83,13 @@ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none
           value={formData.phone}
           onChange={handleChange}
           required
-className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base"
           placeholder="111-111-1111"
         />
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
           Email (Optional)
         </label>
         <input
@@ -98,7 +98,7 @@ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none
           name="email"
           value={formData.email}
           onChange={handleChange}
-className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base"
           placeholder="example@email.com"
         />
       </div>
@@ -106,7 +106,7 @@ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none
       <button
         type="submit"
         disabled={isSubmitting || !formData.name || !formData.phone}
-        className="w-full bg-yellow-600 text-white py-3 px-4 rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+        className="w-full bg-yellow-600 text-white py-3 px-4 rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium mt-6"
       >
         {isSubmitting ? 'Registering...' : 'Register & Get First Stamp'}
       </button>

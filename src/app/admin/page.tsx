@@ -433,9 +433,9 @@ export default function AdminPage() {
   // 관리자 비밀번호 인증 필요
   if (needsPassword) {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-blue-50 flex flex-col justify-center px-4 py-8">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg px-6 py-6">
             <Logo size="md" className="justify-center mb-4" />
             <h1 className="text-xl font-bold text-center mb-3 text-blue-600">
               Admin Authentication
@@ -446,7 +446,7 @@ export default function AdminPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Admin Password
                 </label>
                 <input
@@ -454,7 +454,7 @@ export default function AdminPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handlePasswordAuth()}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   placeholder="Enter password"
                   autoFocus
                 />
@@ -470,7 +470,7 @@ export default function AdminPage() {
             </div>
 
             {error && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-700 text-sm">{error}</p>
               </div>
             )}
@@ -771,19 +771,19 @@ export default function AdminPage() {
   // 편집 단계
   if (isAuthenticated && step === 'edit' && customer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex flex-col px-4 py-6">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-5">
             {/* 헤더 */}
-            <Logo size="md" className="justify-center mb-6" />
-            <h1 className="text-xl font-bold text-center mb-6 text-gray-800">
+            <Logo size="sm" className="justify-center mb-4" />
+            <h1 className="text-lg font-bold text-center mb-4 text-gray-800">
               Edit Customer
             </h1>
 
             {/* 고객 정보 편집 폼 */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-3 mb-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Name *
                 </label>
                 <input
@@ -791,13 +791,13 @@ export default function AdminPage() {
                   name="name"
                   value={editData.name}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-base"
                   placeholder="Enter customer name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Phone Number *
                 </label>
                 <input
@@ -805,13 +805,13 @@ export default function AdminPage() {
                   name="phone"
                   value={editData.phone}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-base"
                   placeholder="111-111-1111"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email (Optional)
                 </label>
                 <input
@@ -819,56 +819,54 @@ export default function AdminPage() {
                   name="email"
                   value={editData.email}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-base"
                   placeholder="example@email.com"
                 />
               </div>
             </div>
 
             {/* 스탬프 관리 섹션 */}
-            <div className="border-t pt-6 mb-6">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Stamp Management</h3>
+            <div className="border-t pt-4 mb-5">
+              <h3 className="text-base font-medium text-gray-800 mb-3">Stamps</h3>
               
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <div className="text-center mb-3">
-                  <div className="text-2xl font-bold text-yellow-600">{customer.stamps}</div>
-                  <div className="text-sm text-gray-600">Current Stamps</div>
+              <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                <div className="text-center mb-2">
+                  <div className="text-xl font-bold text-yellow-600">{customer.stamps}</div>
+                  <div className="text-xs text-gray-600">Current Stamps</div>
                   {customer.vip_status && (
-                    <div className="mt-2 px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-medium inline-block">
-                      ⭐ VIP Member
+                    <div className="mt-1 px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-medium inline-block">
+                      ⭐ VIP
                     </div>
                   )}
                 </div>
                 
-                <div className="space-y-3">
-                  <button
-                    onClick={() => {
-                      if (showStampHistory) {
-                        setShowStampHistory(false)
-                      } else {
-                        getStampHistory()
-                      }
-                    }}
-                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
-                  >
-                    {showStampHistory ? 'Hide' : 'View'} Stamp History
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    if (showStampHistory) {
+                      setShowStampHistory(false)
+                    } else {
+                      getStampHistory()
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
+                >
+                  {showStampHistory ? 'Hide' : 'View'} History
+                </button>
               </div>
 
               {showStampHistory && (
-                <div className="bg-white border rounded-lg p-4 max-h-60 overflow-y-auto mb-4">
-                  <h4 className="font-medium text-gray-800 mb-3 text-sm">Stamp History ({stampHistory.length})</h4>
+                <div className="bg-white border rounded-lg p-3 max-h-40 overflow-y-auto mb-3">
+                  <h4 className="font-medium text-gray-800 mb-2 text-sm">History ({stampHistory.length})</h4>
                   {stampHistory.length === 0 ? (
                     <p className="text-gray-500 text-sm">No stamps found</p>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {stampHistory.slice(0, 10).map((stamp, index) => (
-                        <div key={stamp.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                        <div key={stamp.id} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-b-0">
                           <div>
-                            <div className="text-sm font-medium">#{stampHistory.length - index}</div>
+                            <div className="text-xs font-medium">#{stampHistory.length - index}</div>
                             <div className="text-xs text-gray-500">
-                              {new Date(stamp.created_at).toLocaleDateString()} {new Date(stamp.created_at).toLocaleTimeString()}
+                              {new Date(stamp.created_at).toLocaleDateString()}
                             </div>
                           </div>
                           <button
@@ -876,7 +874,7 @@ export default function AdminPage() {
                             disabled={loading}
                             className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs hover:bg-red-200 disabled:bg-gray-100"
                           >
-                            Delete
+                            Del
                           </button>
                         </div>
                       ))}
@@ -886,34 +884,35 @@ export default function AdminPage() {
               )}
             </div>
 
-            {/* Save 버튼 */}
-            <button
-              onClick={async () => {
-                if (!confirm('Save changes to customer information?')) return
-                await saveCustomerEdit()
-              }}
-              disabled={loading}
-              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 font-medium mb-3"
-            >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </button>
-            
-            {/* Done 버튼 */}
-            <button
-              onClick={() => setStep('dashboard')}
-              className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
-            >
-              Done
-            </button>
+            {/* 버튼들 */}
+            <div className="space-y-2">
+              <button
+                onClick={async () => {
+                  if (!confirm('Save changes to customer information?')) return
+                  await saveCustomerEdit()
+                }}
+                disabled={loading}
+                className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 font-medium"
+              >
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
+              
+              <button
+                onClick={() => setStep('dashboard')}
+                className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
+              >
+                Done
+              </button>
+            </div>
 
             {error && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-700 text-sm">{error}</p>
               </div>
             )}
 
             {success && (
-              <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
                 <p className="text-green-700 text-sm">{success}</p>
               </div>
             )}
