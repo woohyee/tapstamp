@@ -216,14 +216,14 @@ export default function Home() {
 
   if (isNewCustomer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex flex-col justify-center px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex flex-col px-4 pt-2">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl px-6 py-8 border border-orange-100">
-            <Logo size="2xl" showText={false} className="justify-center mb-3" />
-            <h1 className="text-2xl font-bold text-center mb-2 text-gray-800">
+          <div className="bg-white rounded-2xl shadow-xl px-6 pt-4 pb-8 border border-orange-100">
+            <Logo size="2xl" showText={false} className="justify-center mb-1" />
+            <h1 className="text-xl font-bold text-center mb-1 text-gray-800">
               Welcome!
             </h1>
-            <p className="text-center text-gray-600 mb-6 text-sm">
+            <p className="text-center text-gray-600 mb-5 text-sm">
               Enter your information to receive your first stamp
             </p>
             <CustomerForm onSubmit={handleNewCustomerRegistration} />
@@ -238,12 +238,12 @@ export default function Home() {
     
     if (showDetails) {
       return (
-        <div className="min-h-screen bg-yellow-50 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex flex-col px-4 pt-2">
           <div className="w-full max-w-sm mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <Logo size="2xl" showText={false} className="justify-center mb-3" />
+            <div className="bg-white rounded-2xl shadow-xl px-6 pt-4 pb-6 text-center border border-orange-100">
+              <Logo size="2xl" showText={false} className="justify-center mb-1" />
               
-              <h1 className="text-xl font-bold mb-4 text-yellow-600">
+              <h1 className="text-xl font-bold mb-3 text-orange-600">
                 Stamp Details
               </h1>
               
@@ -283,14 +283,14 @@ export default function Home() {
     }
     
     return (
-      <div className="min-h-screen bg-yellow-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex flex-col px-4 pt-2">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <Logo size="md" className="justify-center mb-4" />
+          <div className="bg-white rounded-2xl shadow-xl px-6 pt-4 pb-6 text-center border border-orange-100">
+            <Logo size="2xl" showText={false} className="justify-center mb-1" />
             
             {isFirst ? (
               <>
-                <h1 className="text-xl font-bold mb-3 text-yellow-600">
+                <h1 className="text-xl font-bold mb-2 text-orange-600">
                   Registration Complete! 🎉
                 </h1>
                 <p className="text-gray-600 mb-4 text-sm">
@@ -300,7 +300,7 @@ export default function Home() {
               </>
             ) : stampProcessed ? (
               <>
-                <h1 className="text-xl font-bold mb-3 text-blue-600">
+                <h1 className="text-xl font-bold mb-2 text-orange-600">
                   Welcome Back! 👋
                 </h1>
                 <p className="text-gray-600 mb-4 text-sm">
@@ -310,7 +310,7 @@ export default function Home() {
               </>
             ) : (
               <>
-                <h1 className="text-xl font-bold mb-3 text-yellow-600">
+                <h1 className="text-xl font-bold mb-2 text-orange-600">
                   Stamp Added! ⭐
                 </h1>
                 <p className="text-gray-600 mb-4 text-sm">

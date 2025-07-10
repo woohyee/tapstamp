@@ -417,10 +417,10 @@ export default function AdminPage() {
   // 관리자 비밀번호 인증 필요
   if (needsPassword) {
     return (
-      <div className="min-h-screen bg-blue-50 flex flex-col justify-center px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col px-4 pt-2">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg px-6 py-6">
-            <Logo size="md" className="justify-center mb-4" />
+          <div className="bg-white rounded-2xl shadow-xl px-6 pt-4 pb-6 border border-blue-100">
+            <Logo size="2xl" showText={false} className="justify-center mb-1" />
             <h1 className="text-xl font-bold text-center mb-3 text-blue-600">
               Admin Authentication
             </h1>
@@ -472,11 +472,11 @@ export default function AdminPage() {
   if (isAuthenticated && step === 'dashboard') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-sm mx-auto px-4 py-8">
+        <div className="max-w-sm mx-auto px-4 pt-2">
           {/* 헤더 */}
-          <div className="text-center mb-8">
-            <Logo size="lg" showText={false} className="justify-center mb-4" />
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <div className="text-center mb-6">
+            <Logo size="2xl" showText={false} className="justify-center mb-1" />
+            <h1 className="text-xl font-bold text-gray-800 mb-1">
               Admin Dashboard
             </h1>
           </div>
@@ -549,14 +549,14 @@ export default function AdminPage() {
   // 스탬프 적립 - 검색 단계
   if (isAuthenticated && step === 'search') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col px-4 pt-2">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
-            <Logo size="2xl" showText={false} className="justify-center mb-3" />
-            <h1 className="text-xl font-bold text-center mb-2 text-gray-800">
+          <div className="bg-white rounded-2xl shadow-xl px-6 pt-4 pb-8 border border-blue-100">
+            <Logo size="2xl" showText={false} className="justify-center mb-1" />
+            <h1 className="text-xl font-bold text-center mb-1 text-gray-800">
               Add Stamps
             </h1>
-            <p className="text-center text-gray-600 mb-6 text-sm">
+            <p className="text-center text-gray-600 mb-5 text-sm">
               Search customer by phone number
             </p>
 
@@ -606,7 +606,7 @@ export default function AdminPage() {
   // 확인 단계
   if (isAuthenticated && step === 'confirm' && customer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col px-4 pt-2">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
             <Logo size="2xl" showText={false} className="justify-center mb-3" />
@@ -637,13 +637,6 @@ export default function AdminPage() {
                   {customer.stamps}
                 </div>
                 <div className="text-sm text-gray-600">Current stamps</div>
-                
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-3">
-                  <div 
-                    className="bg-gradient-to-r from-yellow-400 to-yellow-600 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((customer.stamps / 10) * 100, 100)}%` }}
-                  ></div>
-                </div>
               </div>
             </div>
 
@@ -689,7 +682,7 @@ export default function AdminPage() {
   // 고객 관리 - 검색 단계
   if (isAuthenticated && step === 'customer-edit') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col px-4 pt-2">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
             <Logo size="2xl" showText={false} className="justify-center mb-3" />
