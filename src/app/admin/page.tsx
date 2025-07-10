@@ -417,10 +417,12 @@ export default function AdminPage() {
   // 관리자 비밀번호 인증 필요
   if (needsPassword) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col px-4 pt-2">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl px-6 pt-4 pb-6 border border-blue-100">
-            <Logo size="2xl" showText={false} className="justify-center mb-1" />
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-6 border border-blue-100">
+            <div className="mb-4">
+              <Logo size="xl" showText={false} className="justify-center mb-2" />
+            </div>
             <h1 className="text-xl font-bold text-center mb-3 text-blue-600">
               Admin Authentication
             </h1>
@@ -472,11 +474,13 @@ export default function AdminPage() {
   if (isAuthenticated && step === 'dashboard') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-sm mx-auto px-4 pt-2">
+        <div className="max-w-sm mx-auto px-4 py-4">
           {/* 헤더 */}
-          <div className="text-center mb-6">
-            <Logo size="2xl" showText={false} className="justify-center mb-1" />
-            <h1 className="text-xl font-bold text-gray-800 mb-1">
+          <div className="text-center mb-5">
+            <div className="mb-3">
+              <Logo size="xl" showText={false} className="justify-center mb-2" />
+            </div>
+            <h1 className="text-lg font-bold text-gray-800 mb-1">
               Admin Dashboard
             </h1>
           </div>
@@ -549,14 +553,16 @@ export default function AdminPage() {
   // 스탬프 적립 - 검색 단계
   if (isAuthenticated && step === 'search') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col px-4 pt-2">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl px-6 pt-4 pb-8 border border-blue-100">
-            <Logo size="2xl" showText={false} className="justify-center mb-1" />
-            <h1 className="text-xl font-bold text-center mb-1 text-gray-800">
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-6 border border-blue-100">
+            <div className="mb-4">
+              <Logo size="xl" showText={false} className="justify-center mb-2" />
+            </div>
+            <h1 className="text-lg font-bold text-center mb-1 text-gray-800">
               Add Stamps
             </h1>
-            <p className="text-center text-gray-600 mb-5 text-sm">
+            <p className="text-center text-gray-600 mb-4 text-sm">
               Search customer by phone number
             </p>
 
@@ -610,7 +616,7 @@ export default function AdminPage() {
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
             <Logo size="2xl" showText={false} className="justify-center mb-3" />
-            <h1 className="text-xl font-bold text-center mb-4 text-gray-800">
+            <h1 className="text-lg font-bold text-center mb-3 text-gray-800">
               Customer Found
             </h1>
 
@@ -686,10 +692,10 @@ export default function AdminPage() {
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
             <Logo size="2xl" showText={false} className="justify-center mb-3" />
-            <h1 className="text-xl font-bold text-center mb-2 text-gray-800">
+            <h1 className="text-lg font-bold text-center mb-1 text-gray-800">
               Customer Management
             </h1>
-            <p className="text-center text-gray-600 mb-6 text-sm">
+            <p className="text-center text-gray-600 mb-4 text-sm">
               Search customer to edit information
             </p>
 
@@ -747,12 +753,12 @@ export default function AdminPage() {
           <div className="bg-white rounded-lg shadow-lg p-5">
             {/* 헤더 */}
             <Logo size="sm" className="justify-center mb-4" />
-            <h1 className="text-lg font-bold text-center mb-3 text-gray-800">
+            <h1 className="text-base font-bold text-center mb-2 text-gray-800">
               Edit Customer
             </h1>
 
             {/* 고객 정보 편집 폼 */}
-            <div className="space-y-4 mb-5">
+            <div className="space-y-3 mb-4">
               <FloatingInput
                 id="edit-name"
                 name="name"
@@ -787,8 +793,8 @@ export default function AdminPage() {
             </div>
 
             {/* 스탬프 관리 섹션 */}
-            <div className="border-t pt-4 mb-5">
-              <h3 className="text-base font-medium text-gray-800 mb-3">Stamps</h3>
+            <div className="border-t pt-3 mb-4">
+              <h3 className="text-sm font-medium text-gray-800 mb-2">Stamps</h3>
               
               <div className="bg-gray-50 rounded-lg p-3 mb-3">
                 <div className="text-center mb-2">
@@ -891,7 +897,7 @@ export default function AdminPage() {
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center border border-green-100">
             <Logo size="2xl" showText={false} className="justify-center mb-3" />
             
-            <h1 className="text-xl font-bold mb-4 text-yellow-600">
+            <h1 className="text-lg font-bold mb-3 text-green-600">
               Stamp Added Successfully! ✅
             </h1>
             

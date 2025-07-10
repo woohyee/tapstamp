@@ -23,9 +23,10 @@ The build process automatically validates these variables using `scripts/check-e
 
 This is a Next.js 15 NFC-based customer loyalty system for laundromats with a simplified two-page structure:
 
-### Core Pages
-- `/stamp` - NFC entry point for customers (registration/stamp collection)
-- `/admin` - NFC entry point for staff (manual stamp management)
+### Core NFC Entry Points
+- `/` - Primary customer NFC entry point (registration/stamp collection)
+- `/stamp` - Alternative customer NFC entry point (identical functionality to `/`)
+- `/admin` - Staff NFC entry point (manual stamp management and customer editing)
 
 ### Key System Flow
 1. **Customer NFC Process**: Local storage check → new registration form OR immediate stamp addition
@@ -35,7 +36,7 @@ This is a Next.js 15 NFC-based customer loyalty system for laundromats with a si
 ### Important Architectural Decisions
 
 **CRITICAL SYSTEM REQUIREMENTS:**
-- The main page (`/`) MUST NOT contain any system explanations or NFC instructions
+- The registration page (`/`) MUST NOT contain any system explanations or NFC instructions
 - No customer dashboard pages - only the two NFC entry points
 - Stamp accumulation is visit-based only (no payment amount processing)
 - Store owner manually determines $10+ purchases before offering NFC
@@ -59,3 +60,54 @@ All data interfaces are defined in `src/types/index.ts` including Customer, Stam
 - `/api/customers` - Customer management operations
 
 The system prioritizes simplicity: visit = stamp, with business logic for rewards/VIP handled automatically in the background.
+
+## Page Structure and Terminology
+
+**IMPORTANT**: This system has NO "main page" concept. Use precise terminology:
+
+### Customer Flow Pages (`/` route)
+- **Registration Page**: New customer form (when no localStorage ID)
+- **Registration Complete Page**: First stamp confirmation with welcome message
+- **Stamp Added Page**: Returning customer stamp confirmation
+- **Stamp Details Page**: Customer can view detailed stamp information
+
+### Customer Flow Pages (`/stamp` route)
+- **Registration Page**: Alternative NFC entry point (identical to `/`)
+- **Registration Complete Page**: First stamp confirmation
+- **Stamp Added Page**: Returning customer stamp confirmation
+
+### Admin Flow Pages (`/admin` route)
+- **Admin Login Page**: Password authentication
+- **Admin Dashboard**: Menu for stamp management and customer management
+- **Add Stamps Page**: Search customer by phone for manual stamp addition
+- **Customer Found Page**: Shows customer info before adding stamp
+- **Stamp Added Successfully Page**: Confirmation after manual stamp addition
+- **Customer Management Page**: Search customer for editing
+- **Edit Customer Page**: Customer information editing with stamp history
+
+### UI Design Standards
+
+**Mobile-First Layout Optimization:**
+- Logo size: `xl` (230px) for optimal mobile viewing
+- Container padding: `px-6 py-6` standard
+- Layout: `py-4` for consistent page margins
+- Floating input fields with reduced padding: `px-3 py-2.5`
+- Form spacing: `space-y-4` for compact mobile layout
+- Title hierarchy: `text-lg` for main titles, `text-base`/`text-sm` for subtitles
+
+**Color Theming:**
+- Customer pages: Orange-yellow gradient (`from-orange-50 to-yellow-50`)
+- Admin pages: Blue-indigo gradient (`from-blue-50 to-indigo-50`)
+- Buttons: Orange gradient for customer, blue gradient for admin
+- Accent colors: `text-orange-600` for customer titles, `text-blue-600` for admin
+
+**Browser Exit Flow:**
+- Custom completion pages with brand promotion
+- Device-specific browser closing instructions
+- Rewards system information display
+- Graceful fallback for cases where `window.close()` fails
+
+**Key Components:**
+- `FloatingInput`: Space-efficient input fields with animated labels
+- `Logo`: Unified branding across all pages
+- `browserUtils`: Handles browser closing with promotional messaging
