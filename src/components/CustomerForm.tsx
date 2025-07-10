@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { CustomerRegistration } from '@/types'
+import FloatingInput from './FloatingInput'
 
 interface CustomerFormProps {
   onSubmit: (customer: CustomerRegistration) => void
@@ -55,58 +56,43 @@ export default function CustomerForm({ onSubmit }: CustomerFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Name *
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base"
-          placeholder="Enter your name"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <FloatingInput
+        id="name"
+        name="name"
+        type="text"
+        value={formData.name}
+        onChange={handleChange}
+        label="Name"
+        placeholder="Enter your name"
+        required
+      />
 
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-          Phone Number *
-        </label>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base"
-          placeholder="111-111-1111"
-        />
-      </div>
+      <FloatingInput
+        id="phone"
+        name="phone"
+        type="tel"
+        value={formData.phone}
+        onChange={handleChange}
+        label="Phone Number"
+        placeholder="111-111-1111"
+        required
+      />
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Email (Optional)
-        </label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base"
-          placeholder="example@email.com"
-        />
-      </div>
+      <FloatingInput
+        id="email"
+        name="email"
+        type="email"
+        value={formData.email}
+        onChange={handleChange}
+        label="Email (Optional)"
+        placeholder="example@email.com"
+      />
 
       <button
         type="submit"
         disabled={isSubmitting || !formData.name || !formData.phone}
-        className="w-full bg-yellow-600 text-white py-3 px-4 rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium mt-6"
+        className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-4 px-6 rounded-lg hover:from-orange-600 hover:to-yellow-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-200 mt-8"
       >
         {isSubmitting ? 'Registering...' : 'Register & Get First Stamp'}
       </button>

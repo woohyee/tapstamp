@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   showText?: boolean
   className?: string
 }
@@ -9,14 +9,16 @@ interface LogoProps {
 export default function Logo({ size = 'md', showText = true, className = '' }: LogoProps) {
   const sizeClasses = {
     sm: 'w-12 h-12',
-    md: 'w-16 h-16', 
-    lg: 'w-56 h-56'
+    md: 'w-20 h-20', 
+    lg: 'w-32 h-32',
+    xl: 'w-56 h-56'
   }
 
   const textSizeClasses = {
     sm: 'text-lg',
     md: 'text-2xl',
-    lg: 'text-3xl'
+    lg: 'text-3xl',
+    xl: 'text-4xl'
   }
 
   return (
@@ -25,8 +27,8 @@ export default function Logo({ size = 'md', showText = true, className = '' }: L
         <Image
           src="/tapstamplogo.png"
           alt="TapStamp Logo"
-          width={size === 'sm' ? 48 : size === 'md' ? 64 : 230}
-          height={size === 'sm' ? 48 : size === 'md' ? 64 : 230}
+          width={size === 'sm' ? 48 : size === 'md' ? 80 : size === 'lg' ? 128 : 230}
+          height={size === 'sm' ? 48 : size === 'md' ? 80 : size === 'lg' ? 128 : 230}
           className={`${sizeClasses[size]} object-contain`}
         />
       </div>

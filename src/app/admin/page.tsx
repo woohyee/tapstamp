@@ -463,7 +463,7 @@ export default function AdminPage() {
               <button
                 onClick={handlePasswordAuth}
                 disabled={!password.trim()}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-medium"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-400 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
               >
                 Access Admin Panel
               </button>
@@ -545,7 +545,7 @@ export default function AdminPage() {
           <div className="mt-8">
             <button
               onClick={handleLogout}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
             >
               DONE
             </button>
@@ -565,10 +565,10 @@ export default function AdminPage() {
   // 스탬프 적립 - 검색 단계
   if (isAuthenticated && step === 'search') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <Logo size="md" className="justify-center mb-6" />
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
+            <Logo size="lg" showText={false} className="justify-center mb-6" />
             <h1 className="text-xl font-bold text-center mb-2 text-gray-800">
               Add Stamps
             </h1>
@@ -595,7 +595,7 @@ export default function AdminPage() {
               <button
                 onClick={searchCustomer}
                 disabled={loading || !phoneNumber.trim()}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center justify-center gap-2 font-medium"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-400 flex items-center justify-center gap-2 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
               >
                 {loading ? (
                   <>
@@ -625,10 +625,10 @@ export default function AdminPage() {
   // 확인 단계
   if (isAuthenticated && step === 'confirm' && customer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <Logo size="md" className="justify-center mb-6" />
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
+            <Logo size="lg" showText={false} className="justify-center mb-6" />
             <h1 className="text-xl font-bold text-center mb-6 text-gray-800">
               Customer Found
             </h1>
@@ -670,7 +670,7 @@ export default function AdminPage() {
               <button
                 onClick={addStamp}
                 disabled={loading}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center justify-center gap-2 font-medium"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-400 flex items-center justify-center gap-2 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
               >
                 {loading ? (
                   <>
@@ -708,10 +708,10 @@ export default function AdminPage() {
   // 고객 관리 - 검색 단계
   if (isAuthenticated && step === 'customer-edit') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <Logo size="md" className="justify-center mb-6" />
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
+            <Logo size="lg" showText={false} className="justify-center mb-6" />
             <h1 className="text-xl font-bold text-center mb-3 text-gray-800">
               Customer Management
             </h1>
@@ -925,10 +925,10 @@ export default function AdminPage() {
   // 완료 단계
   if (isAuthenticated && step === 'complete' && customer) {
     return (
-      <div className="min-h-screen bg-green-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <Logo size="md" className="justify-center mb-6" />
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center border border-green-100">
+            <Logo size="lg" showText={false} className="justify-center mb-6" />
             
             <h1 className="text-xl font-bold mb-4 text-yellow-600">
               Stamp Added Successfully! ✅
@@ -969,7 +969,7 @@ export default function AdminPage() {
 
             <button
               onClick={() => setStep('dashboard')}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
             >
               Back to Dashboard
             </button>

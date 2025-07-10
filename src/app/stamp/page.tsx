@@ -223,14 +223,14 @@ export default function StampPage() {
 
   if (isNewCustomer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex flex-col justify-center px-4 py-8">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg px-6 py-6">
-            <Logo size="md" className="justify-center mb-4" />
-            <h1 className="text-xl font-bold text-center mb-3 text-gray-800">
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-8 border border-orange-100">
+            <Logo size="lg" showText={false} className="justify-center mb-6" />
+            <h1 className="text-2xl font-bold text-center mb-2 text-gray-800">
               Welcome!
             </h1>
-            <p className="text-center text-gray-600 mb-6 text-sm">
+            <p className="text-center text-gray-600 mb-8 text-sm">
               Enter your information to receive your first stamp
             </p>
             <CustomerForm onSubmit={handleNewCustomerRegistration} />
@@ -279,7 +279,7 @@ export default function StampPage() {
 
               <button
                 onClick={() => setShowDetails(false)}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
               >
                 Done
               </button>
@@ -290,10 +290,10 @@ export default function StampPage() {
     }
     
     return (
-      <div className="min-h-screen bg-yellow-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <Logo size="md" className="justify-center mb-4" />
+          <div className="bg-white rounded-2xl shadow-xl p-6 text-center border border-orange-100">
+            <Logo size="lg" showText={false} className="justify-center mb-4" />
             
             {isFirst ? (
               <>
@@ -348,7 +348,7 @@ export default function StampPage() {
 
             <button
               onClick={() => window.location.href = '/'}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
             >
               Done
             </button>
