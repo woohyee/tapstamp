@@ -228,12 +228,12 @@ export default function StampPage() {
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 flex-1 flex flex-col relative">
             <div className="absolute top-1 left-6 z-10">
-              <p className="text-base text-gray-700 font-bold">
+              <p className="text-base text-blue-800 font-bold">
                 dodo cleaners
               </p>
             </div>
             <div className="flex-1 flex flex-col justify-center">
-              <div className="mb-4 -mt-12">
+              <div className="mb-2 -mt-12">
                 <Logo size="xl" showText={false} className="justify-center h-40" />
               </div>
               <div className="text-center px-4">
@@ -306,12 +306,12 @@ export default function StampPage() {
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 text-center border border-orange-100 flex-1 flex flex-col relative">
             <div className="absolute top-1 left-6 z-10">
-              <p className="text-base text-gray-700 font-bold">
+              <p className="text-base text-blue-800 font-bold">
                 dodo cleaners
               </p>
             </div>
             <div className="flex-1 flex flex-col justify-center">
-              <div className="mb-4 -mt-12">
+              <div className="mb-2 -mt-12">
                 <Logo size="xl" showText={false} className="justify-center h-40" />
               </div>
               <div className="px-4 pb-4">
