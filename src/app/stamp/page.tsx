@@ -351,28 +351,43 @@ export default function StampPage() {
               )}
             </div>
 
-            <div className="text-xs text-gray-500 mb-4">
-              {customer.stamps >= 10 ? 
-                `Next 10 stamps for additional discount coupon!` : 
-                `${10 - customer.stamps} more stamps for 10% discount coupon!`
-              }
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                  <div className="text-3xl font-bold text-yellow-600 mb-1">
+                    {customer.stamps}
+                  </div>
+                  <div className="text-sm text-gray-600">Current stamps</div>
+                  
+                  {customer.vip_status && (
+                    <div className="mt-3 px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-medium">
+                      ⭐ VIP Member
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-xs text-gray-500 mb-4">
+                  {customer.stamps >= 10 ? 
+                    `Next 10 stamps for additional discount coupon!` : 
+                    `${10 - customer.stamps} more stamps for 10% discount coupon!`
+                  }
+                </div>
+
+                {!isFirst && (
+                  <button
+                    onClick={() => setShowDetails(true)}
+                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium mb-3 text-sm"
+                  >
+                    View Stamp Details
+                  </button>
+                )}
+
+                <button
+                  onClick={closeBrowserOrRedirect}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+                >
+                  Done
+                </button>
+              </div>
             </div>
-
-            {!isFirst && (
-              <button
-                onClick={() => setShowDetails(true)}
-                className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium mb-3 text-sm"
-              >
-                View Stamp Details
-              </button>
-            )}
-
-            <button
-              onClick={closeBrowserOrRedirect}
-              className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
-            >
-              Done
-            </button>
           </div>
         </div>
       </div>
