@@ -218,9 +218,9 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-2 py-0">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100">
-            <div className="py-1">
-              <Logo size="xl" showText={false} className="justify-center" />
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 max-h-screen overflow-hidden">
+            <div className="-my-4">
+              <Logo size="xl" showText={false} className="justify-center h-40" />
             </div>
             <div className="-mt-1">
               <h1 className="text-lg font-bold text-center mb-0 text-gray-800">
@@ -291,9 +291,9 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-2 py-0">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl px-6 py-0 text-center border border-orange-100">
-            <div className="py-1">
-              <Logo size="xl" showText={false} className="justify-center" />
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-0 text-center border border-orange-100 max-h-screen overflow-hidden">
+            <div className="-my-4">
+              <Logo size="xl" showText={false} className="justify-center h-40" />
             </div>
             
             <div className="-mt-1 pb-4">
