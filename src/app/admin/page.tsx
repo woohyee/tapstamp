@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { Customer } from '@/types'
 import { Search, Plus, User, Star, Settings } from 'lucide-react'
 import Logo from '@/components/Logo'
+import FloatingInput from '@/components/FloatingInput'
+import { closeAdminSession } from '@/utils/browserUtils'
 
 export default function AdminPage() {
   // 관리자 localStorage 체크 및 인증 처리
@@ -544,7 +546,7 @@ export default function AdminPage() {
           {/* DONE 버튼 */}
           <div className="mt-8">
             <button
-              onClick={handleLogout}
+              onClick={closeAdminSession}
               className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
             >
               DONE
@@ -568,29 +570,26 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
-            <Logo size="lg" showText={false} className="justify-center mb-6" />
+            <Logo size="2xl" showText={false} className="justify-center mb-3" />
             <h1 className="text-xl font-bold text-center mb-2 text-gray-800">
               Add Stamps
             </h1>
-            <p className="text-center text-gray-600 mb-8">
+            <p className="text-center text-gray-600 mb-6 text-sm">
               Search customer by phone number
             </p>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Customer Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={handlePhoneChange}
-                  placeholder="111-111-1111"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 placeholder-gray-400"
-                  onKeyPress={(e) => e.key === 'Enter' && searchCustomer()}
-                  disabled={loading}
-                />
-              </div>
+            <div className="space-y-5">
+              <FloatingInput
+                id="search-phone"
+                name="phone"
+                type="tel"
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+                label="Customer Phone Number"
+                placeholder="111-111-1111"
+                onKeyPress={(e) => e.key === 'Enter' && searchCustomer()}
+                disabled={loading}
+              />
 
               <button
                 onClick={searchCustomer}
@@ -628,8 +627,8 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
-            <Logo size="lg" showText={false} className="justify-center mb-6" />
-            <h1 className="text-xl font-bold text-center mb-6 text-gray-800">
+            <Logo size="2xl" showText={false} className="justify-center mb-3" />
+            <h1 className="text-xl font-bold text-center mb-4 text-gray-800">
               Customer Found
             </h1>
 
@@ -711,29 +710,26 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
-            <Logo size="lg" showText={false} className="justify-center mb-6" />
-            <h1 className="text-xl font-bold text-center mb-3 text-gray-800">
+            <Logo size="2xl" showText={false} className="justify-center mb-3" />
+            <h1 className="text-xl font-bold text-center mb-2 text-gray-800">
               Customer Management
             </h1>
             <p className="text-center text-gray-600 mb-6 text-sm">
               Search customer to edit information
             </p>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Customer Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={handlePhoneChange}
-                  placeholder="111-111-1111"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
-                  onKeyPress={(e) => e.key === 'Enter' && searchCustomer()}
-                  disabled={loading}
-                />
-              </div>
+            <div className="space-y-5">
+              <FloatingInput
+                id="customer-search-phone"
+                name="phone"
+                type="tel"
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+                label="Customer Phone Number"
+                placeholder="111-111-1111"
+                onKeyPress={(e) => e.key === 'Enter' && searchCustomer()}
+                disabled={loading}
+              />
 
               <button
                 onClick={async () => {
@@ -776,53 +772,43 @@ export default function AdminPage() {
           <div className="bg-white rounded-lg shadow-lg p-5">
             {/* 헤더 */}
             <Logo size="sm" className="justify-center mb-4" />
-            <h1 className="text-lg font-bold text-center mb-4 text-gray-800">
+            <h1 className="text-lg font-bold text-center mb-3 text-gray-800">
               Edit Customer
             </h1>
 
             {/* 고객 정보 편집 폼 */}
-            <div className="space-y-3 mb-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={editData.name}
-                  onChange={handleEditChange}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-base"
-                  placeholder="Enter customer name"
-                />
-              </div>
+            <div className="space-y-4 mb-5">
+              <FloatingInput
+                id="edit-name"
+                name="name"
+                type="text"
+                value={editData.name}
+                onChange={handleEditChange}
+                label="Name"
+                placeholder="Enter customer name"
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={editData.phone}
-                  onChange={handleEditChange}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-base"
-                  placeholder="111-111-1111"
-                />
-              </div>
+              <FloatingInput
+                id="edit-phone"
+                name="phone"
+                type="tel"
+                value={editData.phone}
+                onChange={handleEditChange}
+                label="Phone Number"
+                placeholder="111-111-1111"
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email (Optional)
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={editData.email}
-                  onChange={handleEditChange}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-base"
-                  placeholder="example@email.com"
-                />
-              </div>
+              <FloatingInput
+                id="edit-email"
+                name="email"
+                type="email"
+                value={editData.email}
+                onChange={handleEditChange}
+                label="Email (Optional)"
+                placeholder="example@email.com"
+              />
             </div>
 
             {/* 스탬프 관리 섹션 */}
@@ -928,7 +914,7 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center border border-green-100">
-            <Logo size="lg" showText={false} className="justify-center mb-6" />
+            <Logo size="2xl" showText={false} className="justify-center mb-3" />
             
             <h1 className="text-xl font-bold mb-4 text-yellow-600">
               Stamp Added Successfully! ✅

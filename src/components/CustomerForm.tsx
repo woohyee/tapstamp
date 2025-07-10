@@ -92,9 +92,9 @@ export default function CustomerForm({ onSubmit }: CustomerFormProps) {
       <button
         type="submit"
         disabled={isSubmitting || !formData.name || !formData.phone}
-        className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-4 px-6 rounded-lg hover:from-orange-600 hover:to-yellow-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-200 mt-8"
+        className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-4 px-6 rounded-lg hover:from-orange-600 hover:to-yellow-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-200 mt-8 text-sm"
       >
-        {isSubmitting ? 'Registering...' : 'Register & Get First Stamp'}
+        {isSubmitting ? 'Registering...' : 'Register & Get Stamp'}
       </button>
     </form>
   )

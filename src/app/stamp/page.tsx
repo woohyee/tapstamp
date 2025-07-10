@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Customer, CustomerRegistration } from '@/types'
 import CustomerForm from '@/components/CustomerForm'
 import Logo from '@/components/Logo'
+import { closeBrowserOrRedirect } from '@/utils/browserUtils'
 
 export default function StampPage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
@@ -226,11 +227,11 @@ export default function StampPage() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex flex-col justify-center px-4 py-8">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-8 border border-orange-100">
-            <Logo size="lg" showText={false} className="justify-center mb-6" />
+            <Logo size="2xl" showText={false} className="justify-center mb-3" />
             <h1 className="text-2xl font-bold text-center mb-2 text-gray-800">
               Welcome!
             </h1>
-            <p className="text-center text-gray-600 mb-8 text-sm">
+            <p className="text-center text-gray-600 mb-6 text-sm">
               Enter your information to receive your first stamp
             </p>
             <CustomerForm onSubmit={handleNewCustomerRegistration} />
@@ -278,7 +279,7 @@ export default function StampPage() {
               </div>
 
               <button
-                onClick={() => setShowDetails(false)}
+                onClick={closeBrowserOrRedirect}
                 className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
               >
                 Done
@@ -293,7 +294,7 @@ export default function StampPage() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-6 text-center border border-orange-100">
-            <Logo size="lg" showText={false} className="justify-center mb-4" />
+            <Logo size="2xl" showText={false} className="justify-center mb-3" />
             
             {isFirst ? (
               <>
@@ -347,7 +348,7 @@ export default function StampPage() {
             )}
 
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={closeBrowserOrRedirect}
               className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
             >
               Done
