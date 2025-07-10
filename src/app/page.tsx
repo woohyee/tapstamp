@@ -225,7 +225,7 @@ export default function Home() {
               </p>
             </div>
             <div className="flex-1 flex flex-col justify-center">
-              <div className="mb-8 -mt-12">
+              <div className="mb-4 -mt-12">
                 <Logo size="xl" showText={false} className="justify-center h-40" />
               </div>
               <div className="text-center px-4">
@@ -303,7 +303,7 @@ export default function Home() {
               </p>
             </div>
             <div className="flex-1 flex flex-col justify-center">
-              <div className="mb-8 -mt-12">
+              <div className="mb-4 -mt-12">
                 <Logo size="xl" showText={false} className="justify-center h-40" />
               </div>
               <div className="px-4 pb-4">
