@@ -24,7 +24,7 @@ export const closeBrowserOrRedirect = () => {
     setTimeout(() => {
       try {
         window.close()
-      } catch (e) {
+      } catch {
         // 닫기 실패시 빈 페이지에 메시지 표시
         document.body.innerHTML = `
           <div style="

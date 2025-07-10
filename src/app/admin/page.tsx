@@ -205,17 +205,6 @@ export default function AdminPage() {
     }
   }
 
-  const resetForm = () => {
-    setPhoneNumber('')
-    setCustomer(null)
-    setError(null)
-    setSuccess(null)
-    setStep('dashboard')
-    setEditData({ name: '', phone: '', email: '' })
-    setPassword('')
-    setNeedsPassword(false)
-    // setShowMenu(false)
-  }
 
   // const startEdit = () => {
   //   if (customer) {
@@ -412,13 +401,6 @@ export default function AdminPage() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('tagstamp_admin_token')
-    localStorage.removeItem('tagstamp_admin_expiry')
-    setIsAuthenticated(false)
-    setNeedsPassword(true)
-    resetForm()
-  }
 
   // 인증 로딩 중
   if (authLoading) {
