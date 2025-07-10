@@ -219,7 +219,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 flex-1 flex flex-col relative">
-            <div className="absolute top-4 left-6 z-10">
+            <div className="absolute top-1 left-6 z-10">
               <p className="text-base text-gray-700 font-bold">
                 dodo cleaners
               </p>
@@ -297,7 +297,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 text-center border border-orange-100 flex-1 flex flex-col relative">
-            <div className="absolute top-4 left-6 z-10">
+            <div className="absolute top-1 left-6 z-10">
               <p className="text-base text-gray-700 font-bold">
                 dodo cleaners
               </p>
