@@ -221,7 +221,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 flex-1 flex flex-col relative">
-            <div className="absolute top-4 left-6 z-50">
+            <div className="absolute top-6 left-6 z-50">
               <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
                 dodo cleaners
               </p>
@@ -299,7 +299,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 text-center border border-orange-100 flex-1 flex flex-col relative">
-            <div className="absolute top-4 left-6 z-50">
+            <div className="absolute top-6 left-6 z-50">
               <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
                 dodo cleaners
               </p>
@@ -312,26 +312,26 @@ export default function Home() {
                 {isFirst ? (
                 <>
                   <Fireworks show={true} duration={4000} />
-                  <div className="text-center mb-4">
-                    <h1 className="text-2xl font-bold mb-2 text-orange-600 animate-bounce">
+                  <div className="text-center mb-4 mt-8">
+                    <h1 className="text-2xl font-bold mb-2 text-purple-600 animate-bounce">
                       🎊 Welcome! 🎊
                     </h1>
-                    <h2 className="text-xl font-bold mb-1 text-orange-500">
+                    <h2 className="text-xl font-bold mb-1 text-green-600">
                       Registration Complete!
                     </h2>
                     <p className="text-gray-700 mb-2 text-base font-medium">
                       Welcome {customer.name}! ✨
                     </p>
-                    <div className="bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-lg p-4 mb-3">
-                      <p className="text-orange-700 font-bold text-lg mb-2">
+                    <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-blue-300 rounded-lg p-4 mb-3">
+                      <p className="text-blue-700 font-bold text-lg mb-2">
                         🏆 First Stamp Earned! 🏆
                       </p>
                       <div className="flex items-center justify-center">
-                        <span className="text-4xl font-bold text-orange-600">
+                        <span className="text-4xl font-bold text-purple-600">
                           <CountUp from={0} to={1} duration={2000} />
                         </span>
                       </div>
-                      <p className="text-base text-orange-600 mt-2 font-medium">
+                      <p className="text-base text-green-600 mt-2 font-medium">
                         Thank you for joining us! 🌟
                       </p>
                     </div>
@@ -349,20 +349,32 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <h1 className="text-lg font-bold mb-0 text-orange-600">
-                    Stamp Added! ⭐
+                  <h1 className="text-xl font-bold mb-2 text-green-600">
+                    🎉 Stamp Added! 🎉
                   </h1>
-                  <p className="text-gray-600 mb-3 text-sm">
-                    Thank you for visiting again, {customer.name}!<br/>
-                    Your stamp has been added.
+                  <p className="text-gray-700 mb-2 text-base font-medium">
+                    Thank you for visiting again, {customer.name}! ✨
                   </p>
+                  <div className="bg-gradient-to-r from-green-100 to-blue-100 border-2 border-green-300 rounded-lg p-3 mb-3">
+                    <p className="text-green-700 font-bold text-base mb-1">
+                      🏆 New Stamp Earned! 🏆
+                    </p>
+                    <div className="flex items-center justify-center">
+                      <span className="text-3xl font-bold text-green-600">
+                        <CountUp from={customer.stamps - 1} to={customer.stamps} duration={1500} />
+                      </span>
+                    </div>
+                    <p className="text-sm text-blue-600 mt-1 font-medium">
+                      Keep collecting! 🌟
+                    </p>
+                  </div>
                 </>
               )}
 
                 {!isFirst && (
                   <button
                     onClick={() => setShowDetails(true)}
-                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium mb-3 text-sm"
+                    className="w-full px-4 py-2 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 border border-orange-300 rounded-lg hover:from-orange-200 hover:to-yellow-200 font-medium mb-3 text-sm"
                   >
                     View Stamp Details
                   </button>
