@@ -17,7 +17,7 @@ Required variables in `.env.local`:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key  
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
 
-The build process automatically validates these variables using `scripts/check-env.js`.
+The build process automatically validates these variables using `scripts/check-env.js`. For Vercel deployment, ensure these same variables are configured in the Vercel project's Environment Variables settings.
 
 ## Architecture Overview
 
@@ -58,6 +58,11 @@ All data interfaces are defined in `src/types/index.ts` including Customer, Stam
 ### API Routes
 - `/api/stamp` - Handles stamp addition with automatic coupon issuance logic
 - `/api/customers` - Customer management operations
+
+### Admin Authentication
+- Admin access uses localStorage-based tokens with expiration (24 hours)
+- Default password: "123" (configured in admin page component)
+- Token key: `tagstamp_admin_token`, expiry key: `tagstamp_admin_expiry`
 
 The system prioritizes simplicity: visit = stamp, with business logic for rewards/VIP handled automatically in the background.
 
@@ -109,5 +114,17 @@ The system prioritizes simplicity: visit = stamp, with business logic for reward
 
 **Key Components:**
 - `FloatingInput`: Space-efficient input fields with animated labels
-- `Logo`: Unified branding across all pages
+- `Logo`: Unified branding across all pages with configurable sizes (sm/md/lg)
 - `browserUtils`: Handles browser closing with promotional messaging
+
+## Deployment Notes
+
+**Vercel Configuration:**
+- Requires environment variables to be configured in Vercel dashboard
+- Build command uses `npm run build` (includes env validation)
+- Use `npm run build:skip-env` locally if environment variables are missing
+
+**Local Development:**
+- Uses Turbopack for faster development builds
+- Environment validation runs automatically on build
+- All pages use `'use client'` directive for React hooks
