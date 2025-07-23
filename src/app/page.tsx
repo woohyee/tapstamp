@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { Customer, CustomerRegistration } from '@/types'
 import CustomerForm from '@/components/CustomerForm'
 import Logo from '@/components/Logo'
+import Fireworks from '@/components/Fireworks'
+import CountUp from '@/components/CountUp'
 import { closeBrowserOrRedirect } from '@/utils/browserUtils'
 
 // Force dynamic rendering
@@ -309,13 +311,32 @@ export default function Home() {
               <div className="px-4 pb-4">
                 {isFirst ? (
                 <>
-                  <h1 className="text-lg font-bold mb-0 text-orange-600">
-                    Registration Complete! 🎉
-                  </h1>
-                  <p className="text-gray-600 mb-3 text-sm">
-                    Welcome {customer.name}!<br/>
-                    Your first stamp has been added.
-                  </p>
+                  <Fireworks show={true} duration={4000} />
+                  <div className="text-center mb-4">
+                    <h1 className="text-2xl font-bold mb-2 text-orange-600 animate-bounce">
+                      🎊 환영합니다! 🎊
+                    </h1>
+                    <h2 className="text-xl font-bold mb-1 text-orange-500">
+                      Registration Complete!
+                    </h2>
+                    <p className="text-gray-700 mb-2 text-base font-medium">
+                      Welcome {customer.name}! ✨
+                    </p>
+                    <div className="bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-lg p-4 mb-3">
+                      <p className="text-orange-700 font-bold text-lg mb-1">
+                        🏆 첫 번째 스탬프 적립! 🏆
+                      </p>
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-2xl font-bold text-orange-600">
+                          <CountUp from={0} to={1} duration={2000} />
+                        </span>
+                        <span className="text-lg text-gray-600">/ 30 stamps</span>
+                      </div>
+                      <p className="text-sm text-orange-600 mt-1">
+                        29개 더 모으면 VIP 혜택! 🌟
+                      </p>
+                    </div>
+                  </div>
                 </>
               ) : stampProcessed ? (
                 <>
