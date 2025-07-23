@@ -221,8 +221,8 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 flex-1 flex flex-col relative">
-            <div className="absolute top-1 left-6 z-10">
-              <p className="text-base text-blue-800 font-bold">
+            <div className="absolute top-4 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
                 dodo cleaners
               </p>
             </div>
@@ -299,8 +299,8 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
         <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 text-center border border-orange-100 flex-1 flex flex-col relative">
-            <div className="absolute top-1 left-6 z-10">
-              <p className="text-base text-blue-800 font-bold">
+            <div className="absolute top-4 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
                 dodo cleaners
               </p>
             </div>
@@ -314,7 +314,7 @@ export default function Home() {
                   <Fireworks show={true} duration={4000} />
                   <div className="text-center mb-4">
                     <h1 className="text-2xl font-bold mb-2 text-orange-600 animate-bounce">
-                      🎊 환영합니다! 🎊
+                      🎊 Welcome! 🎊
                     </h1>
                     <h2 className="text-xl font-bold mb-1 text-orange-500">
                       Registration Complete!
@@ -323,17 +323,16 @@ export default function Home() {
                       Welcome {customer.name}! ✨
                     </p>
                     <div className="bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-lg p-4 mb-3">
-                      <p className="text-orange-700 font-bold text-lg mb-1">
-                        🏆 첫 번째 스탬프 적립! 🏆
+                      <p className="text-orange-700 font-bold text-lg mb-2">
+                        🏆 First Stamp Earned! 🏆
                       </p>
-                      <div className="flex items-center justify-center space-x-2">
-                        <span className="text-2xl font-bold text-orange-600">
+                      <div className="flex items-center justify-center">
+                        <span className="text-4xl font-bold text-orange-600">
                           <CountUp from={0} to={1} duration={2000} />
                         </span>
-                        <span className="text-lg text-gray-600">/ 30 stamps</span>
                       </div>
-                      <p className="text-sm text-orange-600 mt-1">
-                        29개 더 모으면 VIP 혜택! 🌟
+                      <p className="text-base text-orange-600 mt-2 font-medium">
+                        Thank you for joining us! 🌟
                       </p>
                     </div>
                   </div>
