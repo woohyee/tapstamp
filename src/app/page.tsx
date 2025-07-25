@@ -20,6 +20,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
   const [stampProcessed, setStampProcessed] = useState(false)
+  const [needPhoneNumber, setNeedPhoneNumber] = useState(false)
+  const [prefilledPhone, setPrefilledPhone] = useState('')
 
   useEffect(() => {
     checkCustomerAndProcess()
@@ -30,8 +32,8 @@ export default function Home() {
       const customerId = localStorage.getItem('tagstamp_customer_id')
       
       if (!customerId) {
-        // 신규 고객
-        setIsNewCustomer(true)
+        // localStorage 없음 - 전화번호 먼저 확인
+        setNeedPhoneNumber(true)
         setLoading(false)
         return
       }
@@ -68,6 +70,54 @@ export default function Home() {
       await addStampToExistingCustomer(data, sessionKey)
     } catch {
       setError('System error occurred.')
+      setLoading(false)
+    }
+  }
+
+  const handlePhoneNumberCheck = async (phone: string) => {
+    try {
+      setLoading(true)
+      
+      // 전화번호로 기존 고객 확인
+      const { data: existingCustomer, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('phone', phone)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        throw error
+      }
+
+      if (existingCustomer) {
+        // 기존 고객 발견 - localStorage 복구하고 스탬프 적립 진행
+        localStorage.setItem('tagstamp_customer_id', existingCustomer.id)
+        
+        // 세션 체크
+        const sessionKey = `stamp_processed_${existingCustomer.id}_${Date.now().toString().slice(0, -5)}`
+        const alreadyProcessed = sessionStorage.getItem(sessionKey)
+        
+        if (alreadyProcessed) {
+          setCustomer(existingCustomer)
+          setCompleted(true)
+          setStampProcessed(true)
+          setNeedPhoneNumber(false)
+          setLoading(false)
+          return
+        }
+        
+        // 스탬프 적립
+        await addStampToExistingCustomer(existingCustomer, sessionKey)
+        setNeedPhoneNumber(false)
+      } else {
+        // 신규 고객 - 전화번호를 그대로 가지고 등록 폼으로
+        setPrefilledPhone(phone)
+        setIsNewCustomer(true)
+        setNeedPhoneNumber(false)
+        setLoading(false)
+      }
+    } catch {
+      setError('Failed to check phone number.')
       setLoading(false)
     }
   }
@@ -216,6 +266,57 @@ export default function Home() {
     )
   }
 
+  if (needPhoneNumber) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
+        <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
+          <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 flex-1 flex flex-col relative">
+            <div className="absolute top-6 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
+                dodo cleaners
+              </p>
+            </div>
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="mb-2 -mt-12">
+                <Logo size="xl" showText={false} className="justify-center h-40" />
+              </div>
+              <div className="text-center px-4">
+                <h1 className="text-lg font-bold text-center mb-2 text-gray-800">
+                  Phone Number
+                </h1>
+                <p className="text-center text-gray-600 mb-4 text-sm">
+                  Please enter your phone number
+                </p>
+                <form onSubmit={(e) => {
+                  e.preventDefault()
+                  const formData = new FormData(e.target as HTMLFormElement)
+                  const phone = formData.get('phone') as string
+                  if (phone) {
+                    handlePhoneNumberCheck(phone)
+                  }
+                }} className="space-y-4">
+                  <input
+                    name="phone"
+                    type="tel"
+                    placeholder="111-111-1111"
+                    required
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-3 px-6 rounded-lg hover:from-orange-600 hover:to-yellow-600 font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-200 text-sm"
+                  >
+                    Continue
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (isNewCustomer) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
@@ -237,7 +338,7 @@ export default function Home() {
                 <p className="text-center text-gray-600 mb-4 text-sm">
                   Enter your information to receive your first stamp
                 </p>
-                <CustomerForm onSubmit={handleNewCustomerRegistration} />
+                <CustomerForm onSubmit={handleNewCustomerRegistration} initialPhone={prefilledPhone} />
               </div>
             </div>
           </div>

@@ -6,12 +6,13 @@ import FloatingInput from './FloatingInput'
 
 interface CustomerFormProps {
   onSubmit: (customer: CustomerRegistration) => void
+  initialPhone?: string
 }
 
-export default function CustomerForm({ onSubmit }: CustomerFormProps) {
+export default function CustomerForm({ onSubmit, initialPhone = '' }: CustomerFormProps) {
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
+    phone: initialPhone,
     email: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
