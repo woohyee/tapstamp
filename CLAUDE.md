@@ -19,6 +19,22 @@ Required variables in `.env.local`:
 
 The build process automatically validates these variables using `scripts/check-env.js`. For Vercel deployment, ensure these same variables are configured in the Vercel project's Environment Variables settings.
 
+## Pre-Launch Campaign
+
+**dodo-cleaners-web Integration:**
+- The `dodo-cleaners-web` subproject contains a promotional website for Dodo Cleaners
+- The `/event` page serves as a pre-registration campaign for the TapStamp loyalty system
+- Customers can register before the official launch (August 1st) and receive 1 free stamp
+- This bridges the gap between the business website and the NFC-based loyalty system
+- Both projects share the same Supabase database and environment variables
+
+**Campaign Flow:**
+1. Customers visit dodo-cleaners-web/event page
+2. Fill out registration form (name, phone, optional email)
+3. System checks for duplicates and creates new customer record
+4. Automatically awards 1 stamp for event participation
+5. Shows celebration animation and confirms registration
+
 ## Architecture Overview
 
 This is a Next.js 15 NFC-based customer loyalty system for laundromats with a simplified two-page structure:
@@ -29,9 +45,29 @@ This is a Next.js 15 NFC-based customer loyalty system for laundromats with a si
 - `/admin` - Staff NFC entry point (manual stamp management and customer editing)
 
 ### Key System Flow
-1. **Customer NFC Process**: Local storage check → new registration form OR immediate stamp addition
+1. **Customer NFC Process**: localStorage check → direct stamp addition OR phone number input → existing/new customer handling
 2. **Admin NFC Process**: Phone number input → manual stamp addition + customer status view
 3. **Data Persistence**: Supabase PostgreSQL with customers, stamps, coupons, events tables
+
+### NFC Customer Experience Requirements
+**CRITICAL**: To avoid customer inconvenience, NO QR codes are used - only NFC cards provided by store.
+
+**NFC Tap Flow:**
+1. Staff hands NFC card to customer
+2. Customer taps with their phone
+3. **Check localStorage first**:
+   - **Has customer ID**: Automatic stamp addition + celebration message
+   - **No customer ID**: Prompt for phone number only
+4. **Phone number check** (when localStorage empty):
+   - **Existing customer**: Restore localStorage + stamp addition + celebration
+   - **New customer**: Complete registration form + first stamp + celebration
+5. This approach provides fast experience for regular customers while handling localStorage deletion gracefully
+
+**Previous Implementation Issue**: 
+- Old approach relied on localStorage check first
+- Problem: If customer's localStorage was deleted, they would see registration form
+- Then get error "already registered" when entering phone number
+- New approach: Phone number first eliminates this UX problem
 
 ### Important Architectural Decisions
 
