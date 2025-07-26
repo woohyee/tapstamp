@@ -20,11 +20,12 @@ export interface Stamp {
 export interface Coupon {
   id: string
   customer_id: string
-  type: 'discount_10' | 'discount_20' | 'event_reward'
+  type: 'discount_5' | 'discount_10' | 'discount_15' | 'discount_20' | 'event_reward'
   value: number
   used: boolean
   used_at?: Date
   expires_at?: Date
+  source?: 'regular' | 'lottery'
   created_at: Date
 }
 
@@ -46,4 +47,16 @@ export interface CustomerRegistration {
   name: string
   phone: string
   email?: string
+}
+
+export interface LotteryItem {
+  type: 'empty' | 'discount_5' | 'discount_10' | 'discount_15' | 'discount_20'
+  name: string
+  weight: number
+  value: number | null
+}
+
+export interface LotteryResult {
+  success: boolean
+  result: LotteryItem
 }

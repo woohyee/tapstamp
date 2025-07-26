@@ -67,9 +67,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 쿠폰 발급 체크
-    await checkAndIssueCoupons(updatedCustomer)
+    const eventTriggered = await checkAndIssueCoupons(updatedCustomer)
 
-    return NextResponse.json({ customer: updatedCustomer })
+    return NextResponse.json({ 
+      customer: updatedCustomer,
+      eventTriggered
+    })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json(
@@ -81,6 +84,34 @@ export async function POST(request: NextRequest) {
 
 async function checkAndIssueCoupons(customer: { id: string; stamps: number }) {
   const stamps = customer.stamps
+  let eventTriggered = null
+  
+  console.log('Checking coupons for customer:', customer.id, 'stamps:', stamps)
+  
+  // 5개 스탬프 복권 이벤트 - EXACTLY 5 stamps only
+  if (stamps === 5) {
+    console.log('5 stamps reached! Checking lottery eligibility...')
+    // 이미 복권 이벤트에 참여했는지 확인
+    const { data: existingEvent } = await supabase
+      .from('events')
+      .select('*')
+      .eq('customer_id', customer.id)
+      .eq('event_type', 'lottery')
+      .single()
+    
+    if (!existingEvent) {
+      // 복권 이벤트 참여 기록 추가
+      await supabase
+        .from('events')
+        .insert([{
+          customer_id: customer.id,
+          event_type: 'lottery',
+          event_data: { eligible: true }
+        }])
+      
+      eventTriggered = { type: 'lottery', stamps: 5 }
+    }
+  }
   
   if (stamps === 10) {
     await supabase
@@ -114,4 +145,6 @@ async function checkAndIssueCoupons(customer: { id: string; stamps: number }) {
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
       }])
   }
+  
+  return eventTriggered
 }

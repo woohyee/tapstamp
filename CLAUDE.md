@@ -69,6 +69,44 @@ This is a Next.js 15 NFC-based customer loyalty system for laundromats with a si
 - Then get error "already registered" when entering phone number
 - New approach: Phone number first eliminates this UX problem
 
+### Fraud Prevention Requirements for Production
+
+**Currently Implemented (Test Mode):**
+- Session-based duplicate prevention (5-minute intervals using sessionStorage)
+- Prevents multiple stamps within the same browser session
+
+**Production Requirements (To Be Implemented):**
+
+1. **Time-based Restrictions:**
+   - Prevent same customer from earning stamps within configurable intervals (30min/1hr/4hr/24hr)
+   - Track `last_stamp_at` timestamp in database
+   - Daily maximum stamp limits per customer
+
+2. **Location-based Security:**
+   - NFC tags should only work within store premises
+   - IP address / geolocation validation
+   - Store-specific NFC card validation
+
+3. **Admin Configuration:**
+   - Configurable stamp earning intervals
+   - Daily/weekly stamp limits
+   - Suspicious activity detection thresholds
+
+4. **Abuse Detection:**
+   - Alert system for excessive attempts in short timeframes
+   - Temporary account suspension for suspected fraud
+   - Admin notification system
+
+**Database Schema Extensions for Production:**
+```sql
+ALTER TABLE customers ADD COLUMN last_stamp_at TIMESTAMP;
+ALTER TABLE customers ADD COLUMN daily_stamp_count INTEGER DEFAULT 0;
+ALTER TABLE customers ADD COLUMN last_stamp_date DATE;
+ALTER TABLE customers ADD COLUMN suspicious_activity_count INTEGER DEFAULT 0;
+```
+
+**Note:** Current implementation prioritizes ease of testing. Production deployment requires enabling fraud prevention features.
+
 ### Important Architectural Decisions
 
 **CRITICAL SYSTEM REQUIREMENTS:**
@@ -164,3 +202,151 @@ The system prioritizes simplicity: visit = stamp, with business logic for reward
 - Uses Turbopack for faster development builds
 - Environment validation runs automatically on build
 - All pages use `'use client'` directive for React hooks
+
+## Localization Policy
+
+**Language Requirements:**
+- **UI Text & Customer-facing Content**: Must use English only (deployed in Canada)
+- **Code Comments**: English only
+- **Variable Names**: English only
+- **API Messages**: English only
+- **Error Messages**: English only
+- **Development Communication**: Korean allowed in conversations with Claude
+- **Documentation**: English only
+
+**Implementation Notes:**
+- All customer-facing text should be in English
+- System messages, buttons, labels must be English
+- Database content should use English
+- Error handling and validation messages in English
+
+## Random Coupon Lottery Event System
+
+**Event Trigger Condition:**
+- Triggers when ANY customer reaches exactly 5 stamps
+- Applies to all customers (new or existing, regardless of visit number)
+- Only triggers once per customer (duplicate participation prevented via events table)
+
+**5 Stamps Detection Logic:**
+```javascript
+// In /api/stamp/route.ts - checkAndIssueCoupons function
+async function checkAndIssueCoupons(customer: { id: string; stamps: number }) {
+  const stamps = customer.stamps
+  let eventTriggered = null
+  
+  // 5개 스탬프 복권 이벤트 - EXACTLY 5 stamps only
+  if (stamps === 5) {
+    // Check if customer already participated in lottery
+    const { data: existingEvent } = await supabase
+      .from('events')
+      .select('*')
+      .eq('customer_id', customer.id)
+      .eq('event_type', 'lottery')
+      .single()
+    
+    if (!existingEvent) {
+      // Add lottery event participation record
+      await supabase
+        .from('events')
+        .insert([{
+          customer_id: customer.id,
+          event_type: 'lottery',
+          event_data: { eligible: true }
+        }])
+      
+      eventTriggered = { type: 'lottery', stamps: 5 }
+    }
+  }
+  
+  return eventTriggered
+}
+```
+
+**IMPORTANT - Universal Application:**
+- This logic applies to ALL stamp addition scenarios:
+  - New customer getting 1st stamp → no event
+  - Existing customer getting 2nd, 3rd, 4th stamp → no event  
+  - Existing customer getting 5th stamp → EVENT TRIGGERED
+  - Existing customer getting 6th, 7th, 8th+ stamp → no event (already participated)
+- Whether customer is brand new, returning, or long-time visitor is IRRELEVANT
+- Whether it's their 1st visit or 100th visit is IRRELEVANT  
+- ONLY the exact stamp count of 5 matters
+- Phone number input triggering event = customer already had 4 stamps, now getting 5th
+
+**Event Flow:**
+1. **5 Stamps Achieved**: Customer gets 5th stamp → automatic redirect to `/coupon` page
+2. **Congratulations Page**: "You've won a random coupon lottery!" with PLAY button
+3. **Scratch Card Game**: Real scratch-to-reveal interface using Canvas API
+4. **Result Display**: Prize revealed after 30% of card is scratched
+5. **Coupon Usage**: Winner can use immediately (USE NOW) or save for later (Use Later)
+
+**Probability System (0-99 Index Table):**
+- **5% Empty** (indices 0-4): "OOPS!" with funny circus theme
+- **50% 5% OFF** (indices 5-54): Green 5% discount coupon
+- **30% 10% OFF** (indices 55-84): Blue 10% discount coupon  
+- **10% 15% OFF** (indices 85-94): Purple 15% discount coupon
+- **5% 20% OFF** (indices 95-99): Red 20% discount coupon
+
+**Technical Implementation:**
+```javascript
+// Simple probability logic
+const LOTTERY_TABLE = [
+  ...Array(5).fill('empty'),      // 5%
+  ...Array(50).fill('discount_5'), // 50%
+  ...Array(30).fill('discount_10'), // 30%
+  ...Array(10).fill('discount_15'), // 10%
+  ...Array(5).fill('discount_20')   // 5%
+]
+const randomIndex = Math.floor(Math.random() * 100)
+const result = LOTTERY_TABLE[randomIndex]
+```
+
+**Scratch Card Features:**
+- Canvas-based real scratch interaction
+- Silver foil texture with gradient effects
+- Mouse/touch drag support
+- Auto-reveal at 30% scratched
+- Progress indicator bar
+- Soft brush with gradient edges for natural scratch effect
+
+**Coupon Management:**
+- **Issue**: Winning coupons automatically saved to database with 30-day expiry
+- **Use Now**: Blue button → immediately marks as used + red "USED" state  
+- **Done Button**: CRITICAL - Always closes browser. For winners who didn't use "USE NOW", automatically saves coupon to database for later use
+- **Admin Notification**: Console log notification when coupon is used (expandable to real-time notifications)
+
+**CRITICAL Done Button Policy:**
+- **Done button ALWAYS closes browser window** - no exceptions
+- **For winning results (not already used)**: Automatically saves coupon to database with "unused" status before closing
+- **For winning results (already used)**: Just closes browser (coupon already marked as used)
+- **For empty results**: Just closes browser (nothing to save)
+- **Session tracking**: Marks lottery as completed in sessionStorage to prevent infinite loops
+
+**Use Later Workflow (Key Business Logic):**
+1. **Customer wins coupon** but doesn't have enough laundry today
+2. **Clicks "Use Later"** → coupon saved to database with 30-day expiry
+3. **Customer returns later** (next visit with more laundry)
+4. **NFC scan triggers stamp addition** → system automatically checks for unused coupons
+5. **If unused coupons found** → displays green coupon notification with "USE NOW" buttons
+6. **Customer can use coupon** when they have enough laundry for discount
+
+**NFC Scan Coupon Detection:**
+- Every NFC scan (after stamp processing) automatically checks `/api/coupons/check`
+- Displays unused, non-expired coupons with USE NOW buttons
+- Supports multiple unused coupons per customer
+- Real-time coupon usage with admin notification
+- Coupons removed from display after use
+
+**Database Integration:**
+- `/api/coupons/issue` - Issues winning coupons to database
+- `/api/coupons/use` - Marks coupons as used and notifies admin
+- `/api/coupons/check` - Checks for unused coupons during NFC scans
+- `events` table tracks lottery participation to prevent duplicates
+- `coupons` table stores issued coupons with usage status and expiry dates
+
+**UI Design:**
+- Scratch card uses actual Canvas API for realistic scratch effect
+- Empty result shows circus/clown theme with bounce animations
+- Winning results show gradient backgrounds with celebration emojis
+- All text in English for Canadian deployment
+- Mobile-optimized touch interactions

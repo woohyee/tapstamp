@@ -19,9 +19,14 @@ export default function Home() {
   const [completed, setCompleted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
-  const [stampProcessed, setStampProcessed] = useState(false)
   const [needPhoneNumber, setNeedPhoneNumber] = useState(false)
   const [prefilledPhone, setPrefilledPhone] = useState('')
+  const [availableCoupons, setAvailableCoupons] = useState<{
+    id: string;
+    value: number;
+    expires_at: string;
+  }[]>([])
+  const [showCoupons, setShowCoupons] = useState(false)
 
   useEffect(() => {
     checkCustomerAndProcess()
@@ -61,7 +66,6 @@ export default function Home() {
         // 이미 이번 세션에서 스탬프 처리됨 - 정보만 표시
         setCustomer(data)
         setCompleted(true)
-        setStampProcessed(true)
         setLoading(false)
         return
       }
@@ -100,7 +104,6 @@ export default function Home() {
         if (alreadyProcessed) {
           setCustomer(existingCustomer)
           setCompleted(true)
-          setStampProcessed(true)
           setNeedPhoneNumber(false)
           setLoading(false)
           return
@@ -124,40 +127,40 @@ export default function Home() {
 
   const addStampToExistingCustomer = async (customerData: Customer, sessionKey: string) => {
     try {
-      const newStampCount = customerData.stamps + 1
-      const shouldBecomeVip = newStampCount >= 30 && !customerData.vip_status
+      // 새로운 Stamp API 사용
+      const response = await fetch('/api/stamp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customer_id: customerData.id }),
+      })
 
-      // 스탬프 기록 추가
-      await supabase
-        .from('stamps')
-        .insert([{
-          customer_id: customerData.id,
-          amount: 0 // 금액은 사용하지 않음
-        }])
-
-      // 고객 정보 업데이트
-      const { data: updatedCustomer, error: updateError } = await supabase
-        .from('customers')
-        .update({
-          stamps: newStampCount,
-          vip_status: shouldBecomeVip ? true : customerData.vip_status,
-          vip_expires_at: shouldBecomeVip ? 
-            new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : 
-            customerData.vip_expires_at
-        })
-        .eq('id', customerData.id)
-        .select()
-        .single()
-
-      if (updateError) throw updateError
-
-      // 쿠폰 발급 체크
-      await checkAndIssueCoupons(updatedCustomer)
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add stamp')
+      }
 
       // 세션에 처리 완료 표시
       sessionStorage.setItem(sessionKey, 'true')
 
-      setCustomer(updatedCustomer)
+      setCustomer(data.customer)
+      
+      // Check for coupon lottery trigger (5 stamps)
+      if (data.eventTriggered?.type === 'lottery') {
+        // Check if lottery already completed in this session to prevent infinite loop
+        const lotteryCompleted = sessionStorage.getItem(`lottery_completed_${data.customer.id}`)
+        if (!lotteryCompleted) {
+          // Redirect to coupon page
+          window.location.href = '/coupon'
+          return
+        }
+      }
+      
+      // Check for existing unused coupons
+      await checkAvailableCoupons(data.customer.id)
+      
       setCompleted(true)
       setLoading(false)
     } catch {
@@ -171,27 +174,47 @@ export default function Home() {
       // 고객 등록
       const { data: newCustomer, error: customerError } = await supabase
         .from('customers')
-        .insert([{
-          ...customerData,
-          stamps: 1 // 첫 스탬프
-        }])
+        .insert([customerData])
         .select()
         .single()
 
       if (customerError) throw customerError
 
-      // 첫 스탬프 기록
-      await supabase
-        .from('stamps')
-        .insert([{
-          customer_id: newCustomer.id,
-          amount: 0
-        }])
-
       // 로컬스토리지에 저장
       localStorage.setItem('tagstamp_customer_id', newCustomer.id)
       
-      setCustomer(newCustomer)
+      // 스탬프 API로 첫 스탬프 추가
+      const response = await fetch('/api/stamp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customer_id: newCustomer.id }),
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add first stamp')
+      }
+      
+      setCustomer(data.customer)
+      
+      // Check for coupon lottery trigger (5 stamps) - should not happen for new customers
+      if (data.eventTriggered?.type === 'lottery') {
+        console.warn('Unexpected lottery trigger for new customer!')
+        // Check if lottery already completed in this session to prevent infinite loop
+        const lotteryCompleted = sessionStorage.getItem(`lottery_completed_${data.customer.id}`)
+        if (!lotteryCompleted) {
+          // Redirect to coupon page
+          window.location.href = '/coupon'
+          return
+        }
+      }
+      
+      // Check for existing unused coupons (though unlikely for new customers)
+      await checkAvailableCoupons(data.customer.id)
+      
       setIsNewCustomer(false)
       setCompleted(true)
     } catch {
@@ -199,40 +222,47 @@ export default function Home() {
     }
   }
 
-  const checkAndIssueCoupons = async (customer: { id: string; stamps: number }) => {
-    const stamps = customer.stamps
-    
-    if (stamps === 10) {
-      await supabase
-        .from('coupons')
-        .insert([{
-          customer_id: customer.id,
-          type: 'discount_10',
-          value: 10,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        }])
+  const checkAvailableCoupons = async (customerId: string) => {
+    try {
+      const response = await fetch(`/api/coupons/check?customer_id=${customerId}`)
+      const data = await response.json()
+      
+      if (data.success && data.hasUnusedCoupons) {
+        setAvailableCoupons(data.coupons)
+        setShowCoupons(true)
+      }
+    } catch (error) {
+      console.error('Error checking coupons:', error)
     }
-    
-    if (stamps === 15) {
-      await supabase
-        .from('coupons')
-        .insert([{
-          customer_id: customer.id,
-          type: 'discount_20',
-          value: 20,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        }])
-    }
-    
-    if (stamps > 15 && stamps % 10 === 0) {
-      await supabase
-        .from('coupons')
-        .insert([{
-          customer_id: customer.id,
-          type: 'discount_10',
-          value: 10,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        }])
+  }
+
+  const handleUseCoupon = async (couponId: string) => {
+    try {
+      const response = await fetch('/api/coupons/use', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          coupon_id: couponId,
+          customer_id: customer?.id
+        }),
+      })
+
+      if (response.ok) {
+        alert('Coupon used successfully! Admin has been notified.')
+        // Remove used coupon from the list
+        setAvailableCoupons(prev => prev.filter(c => c.id !== couponId))
+        if (availableCoupons.length <= 1) {
+          setShowCoupons(false)
+        }
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to use coupon: ${errorData.error}`)
+      }
+    } catch (error) {
+      console.error('Error using coupon:', error)
+      alert('Error using coupon. Please try again.')
     }
   }
 
@@ -412,17 +442,14 @@ export default function Home() {
               <div className="px-4 pb-4">
                 {isFirst ? (
                 <>
-                  <Fireworks show={true} duration={4000} />
+                  <Fireworks show={true} duration={5000} />
                   <div className="text-center mb-4 mt-8">
                     <h1 className="text-2xl font-bold mb-2 text-purple-600 animate-bounce">
                       🎊 Welcome! 🎊
                     </h1>
-                    <h2 className="text-xl font-bold mb-1 text-green-600">
+                    <h2 className="text-xl font-bold mb-4 text-green-600">
                       Registration Complete!
                     </h2>
-                    <p className="text-gray-700 mb-2 text-base font-medium">
-                      Welcome {customer.name}! ✨
-                    </p>
                     <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-blue-300 rounded-lg p-4 mb-3">
                       <p className="text-blue-700 font-bold text-lg mb-2">
                         🏆 First Stamp Earned! 🏆
@@ -438,39 +465,53 @@ export default function Home() {
                     </div>
                   </div>
                 </>
-              ) : stampProcessed ? (
-                <>
-                  <h1 className="text-lg font-bold mb-0 text-orange-600">
-                    Welcome Back! 👋
-                  </h1>
-                  <p className="text-gray-600 mb-3 text-sm">
-                    Hello {customer.name}!<br/>
-                    Your current stamp count is shown below.
-                  </p>
-                </>
               ) : (
                 <>
-                  <h1 className="text-xl font-bold mb-2 text-green-600">
+                  <h1 className="text-xl font-bold mb-4 text-green-600">
                     🎉 Stamp Added! 🎉
                   </h1>
-                  <p className="text-gray-700 mb-2 text-base font-medium">
-                    Thank you for visiting again, {customer.name}! ✨
-                  </p>
-                  <div className="bg-gradient-to-r from-green-100 to-blue-100 border-2 border-green-300 rounded-lg p-3 mb-3">
-                    <p className="text-green-700 font-bold text-base mb-1">
-                      🏆 New Stamp Earned! 🏆
-                    </p>
-                    <div className="flex items-center justify-center">
-                      <span className="text-3xl font-bold text-green-600">
+                  <div className="bg-gradient-to-r from-green-100 to-blue-100 border-2 border-green-300 rounded-lg p-4 mb-3">
+                    <div className="flex items-center justify-center mb-2">
+                      <span className="text-4xl font-bold text-green-600">
                         <CountUp from={customer.stamps - 1} to={customer.stamps} duration={1500} />
                       </span>
                     </div>
-                    <p className="text-sm text-blue-600 mt-1 font-medium">
+                    <p className="text-sm text-blue-600 font-medium">
                       Keep collecting! 🌟
                     </p>
                   </div>
                 </>
               )}
+
+{showCoupons && availableCoupons.length > 0 && (
+                  <div className="mb-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                    <h3 className="text-lg font-bold text-green-700 mb-3 text-center">
+                      🎟️ You have unused coupons!
+                    </h3>
+                    <div className="space-y-2">
+                      {availableCoupons.map((coupon) => (
+                        <div key={coupon.id} className="bg-white p-3 rounded-lg border border-green-200">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-bold text-green-700">
+                                {coupon.value}% OFF Coupon
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                Expires: {new Date(coupon.expires_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleUseCoupon(coupon.id)}
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium"
+                            >
+                              USE NOW
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {!isFirst && (
                   <button
