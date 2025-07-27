@@ -192,32 +192,11 @@ export default function Home() {
       // 로컬스토리지에 저장
       localStorage.setItem('tagstamp_customer_id', newCustomer.id)
       
-      // 스탬프 API로 첫 스탬프 추가
-      const response = await fetch('/api/stamp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ customer_id: newCustomer.id }),
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to add first stamp')
-      }
-      
-      setCustomer(data.customer)
-      
-      // API에서 카트리지 이벤트 처리 결과 확인 (신규 고객도 해당)
-      if (data.eventTriggered && data.eventTriggered.type === 'cartridge' && data.eventTriggered.redirect) {
-        console.log('🎮 New customer cartridge event triggered, redirecting to:', data.eventTriggered.redirect)
-        window.location.href = data.eventTriggered.redirect
-        return
-      }
+      // 신규 고객은 이미 첫 스탬프가 포함되어 등록됨
+      setCustomer(newCustomer)
       
       // Check for existing unused coupons (though unlikely for new customers)
-      await checkAvailableCoupons(data.customer.id)
+      await checkAvailableCoupons(newCustomer.id)
       
       setIsNewCustomer(false)
       setCompleted(true)

@@ -125,10 +125,12 @@ async function checkCartridgeEvents(customer: {
     const registry = new CartridgeRegistry()
     
     // 5StampLottery 카트리지 등록
-    const { FiveStampLotteryCartridge } = await import('@/cartridges/5StampLottery')
+    const { FiveStampLotteryCartridge } = await import('@/cartridges/5StampLottery/index')
     registry.register('5StampLottery', new FiveStampLotteryCartridge())
+    console.log('🎮 5StampLottery cartridge registered')
     
     const result = await registry.executeCartridge(stamps, customer.id)
+    console.log('🎮 Cartridge execution result:', result)
     
     if (result && result.success && result.redirect) {
       console.log('✅ Cartridge event triggered:', result)

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         name: body.name,
         phone: body.phone,
         email: body.email || null,
-        stamps: 0,
+        stamps: 1,
         vip_status: false,
         vip_expires_at: null,
         created_at: new Date()
@@ -48,12 +48,21 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Customer created successfully with ID:', docRef.id)
 
+      // 첫 스탬프 기록도 함께 생성
+      console.log('💎 Adding first stamp record...')
+      await addDoc(collection(db, 'stamps'), {
+        customer_id: docRef.id,
+        amount: 0,
+        created_at: new Date()
+      })
+      console.log('✅ First stamp record created')
+
       const customer = {
         id: docRef.id,
         name: body.name,
         phone: body.phone,
         email: body.email || null,
-        stamps: 0,
+        stamps: 1,
         vip_status: false,
         vip_expires_at: null,
         created_at: new Date()
