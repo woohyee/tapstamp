@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/firebase'
+import { collection, query, where, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore'
 
 // Lottery items definition (weight-based)
 const LOTTERY_ITEMS = [
@@ -22,18 +23,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if customer is eligible for lottery event
-    const { data: event, error: eventError } = await supabase
-      .from('events')
-      .select('*')
-      .eq('customer_id', body.customer_id)
-      .eq('event_type', 'lottery')
-      .single()
+    const eventsQuery = query(
+      collection(db, 'events'), 
+      where('customer_id', '==', body.customer_id),
+      where('event_type', '==', 'lottery')
+    )
+    const eventsSnapshot = await getDocs(eventsQuery)
 
-    if (eventError || !event) {
+    if (eventsSnapshot.empty) {
       return NextResponse.json(
         { error: 'Not eligible for lottery event.' },
         { status: 403 }
       )
+    }
+
+    const event = { 
+      id: eventsSnapshot.docs[0].id, 
+      ...eventsSnapshot.docs[0].data() 
+    } as {
+      id: string;
+      customer_id: string;
+      event_type: string;
+      event_data: { completed?: boolean; eligible?: boolean; result?: { type: string; name: string; weight: number; value: number | null } };
     }
 
     // Check if already drawn
@@ -48,28 +59,24 @@ export async function POST(request: NextRequest) {
     const result = performWeightedLottery()
     
     // Update event to completed status
-    await supabase
-      .from('events')
-      .update({
-        event_data: {
-          ...event.event_data,
-          completed: true,
-          result: result
-        }
-      })
-      .eq('id', event.id)
+    await updateDoc(doc(db, 'events', event.id), {
+      event_data: {
+        ...event.event_data,
+        completed: true,
+        result: result
+      }
+    })
 
     // Issue coupon if won
     if (result.type !== 'empty') {
-      await supabase
-        .from('coupons')
-        .insert([{
-          customer_id: body.customer_id,
-          type: result.type,
-          value: result.value,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          source: 'lottery'
-        }])
+      await addDoc(collection(db, 'coupons'), {
+        customer_id: body.customer_id,
+        type: result.type,
+        value: result.value,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        used: false,
+        created_at: new Date()
+      })
     }
 
     return NextResponse.json({ 

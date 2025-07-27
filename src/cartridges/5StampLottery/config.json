@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "5개 스탬프 랜덤 쿠폰 카트리지",
+  "description": "5개 스탬프 달성 시 스크래치 쿠폰 이벤트",
+  "trigger": {
+    "stamps": 5,
+    "type": "lottery",
+    "allowDuplicates": false
+  },
+  "settings": {
+    "probability": {
+      "empty": 5,
+      "discount_10": 70,
+      "discount_20": 25
+    },
+    "couponExpireDays": 30,
+    "redirectUrl": "/cartridges/5StampLottery/play"
+  }
+}

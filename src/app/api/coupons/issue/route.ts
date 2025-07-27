@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/firebase'
+import { addDoc, collection } from 'firebase/firestore'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,32 +35,39 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Attempting to insert coupon...')
-    // Issue coupon (removing source field if it doesn't exist)
-    const { data: coupon, error: couponError } = await supabase
-      .from('coupons')
-      .insert([{
+    // Issue coupon
+    try {
+      const docRef = await addDoc(collection(db, 'coupons'), {
         customer_id: body.customer_id,
         type: body.type,
         value: value,
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        used: false
-      }])
-      .select()
-      .single()
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        used: false,
+        created_at: new Date()
+      })
 
-    if (couponError) {
+      const coupon = {
+        id: docRef.id,
+        customer_id: body.customer_id,
+        type: body.type,
+        value: value,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        used: false,
+        created_at: new Date()
+      }
+
+      console.log('Coupon issued successfully:', coupon)
+      return NextResponse.json({ 
+        success: true,
+        coupon: coupon
+      })
+    } catch (couponError) {
       console.error('Coupon issue error:', couponError)
       return NextResponse.json(
-        { error: 'Failed to issue coupon.', details: couponError.message },
+        { error: 'Failed to issue coupon.', details: couponError instanceof Error ? couponError.message : 'Unknown error' },
         { status: 500 }
       )
     }
-
-    console.log('Coupon issued successfully:', coupon)
-    return NextResponse.json({ 
-      success: true,
-      coupon: coupon
-    })
   } catch (error) {
     console.error('Coupon issue API error:', error)
     return NextResponse.json(

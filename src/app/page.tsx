@@ -1,13 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/firebase'
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { Customer, CustomerRegistration } from '@/types'
 import CustomerForm from '@/components/CustomerForm'
 import Logo from '@/components/Logo'
 import Fireworks from '@/components/Fireworks'
 import CountUp from '@/components/CountUp'
 import { closeBrowserOrRedirect } from '@/utils/browserUtils'
+import { cartridgeRegistry } from '@/cartridges/base/CartridgeRegistry'
+import { FiveStampLotteryCartridge } from '@/cartridges/5StampLottery'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -29,6 +32,11 @@ export default function Home() {
   const [showCoupons, setShowCoupons] = useState(false)
 
   useEffect(() => {
+    // 카트리지 초기화
+    const fiveStampLottery = new FiveStampLotteryCartridge()
+    cartridgeRegistry.register('5StampLottery', fiveStampLottery)
+    console.log('카트리지 등록 완료:', cartridgeRegistry.getRegisteredCartridges())
+    
     checkCustomerAndProcess()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -44,19 +52,17 @@ export default function Home() {
       }
 
       // 기존 고객 - 정보 확인
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('id', customerId)
-        .single()
+      const customerDoc = await getDoc(doc(db, 'customers', customerId))
 
-      if (error || !data) {
+      if (!customerDoc.exists()) {
         // 잘못된 ID - 신규 고객으로 처리
         localStorage.removeItem('tagstamp_customer_id')
         setIsNewCustomer(true)
         setLoading(false)
         return
       }
+
+      const data = { id: customerDoc.id, ...customerDoc.data() } as Customer
 
       // 기존 고객 - 세션에서 이미 처리되었는지 확인
       const sessionKey = `stamp_processed_${customerId}_${Date.now().toString().slice(0, -5)}` // 5분 단위로 구분
@@ -83,17 +89,17 @@ export default function Home() {
       setLoading(true)
       
       // 전화번호로 기존 고객 확인
-      const { data: existingCustomer, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('phone', phone)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        throw error
-      }
-
-      if (existingCustomer) {
+      const customersQuery = query(
+        collection(db, 'customers'), 
+        where('phone', '==', phone)
+      )
+      const existingSnapshot = await getDocs(customersQuery)
+      
+      if (!existingSnapshot.empty) {
+        const existingCustomer = { 
+          id: existingSnapshot.docs[0].id, 
+          ...existingSnapshot.docs[0].data() 
+        } as Customer
         // 기존 고객 발견 - localStorage 복구하고 스탬프 적립 진행
         localStorage.setItem('tagstamp_customer_id', existingCustomer.id)
         
@@ -147,15 +153,12 @@ export default function Home() {
 
       setCustomer(data.customer)
       
-      // Check for coupon lottery trigger (5 stamps)
-      if (data.eventTriggered?.type === 'lottery') {
-        // Check if lottery already completed in this session to prevent infinite loop
-        const lotteryCompleted = sessionStorage.getItem(`lottery_completed_${data.customer.id}`)
-        if (!lotteryCompleted) {
-          // Redirect to coupon page
-          window.location.href = '/coupon'
-          return
-        }
+      // 카트리지 시스템으로 이벤트 처리
+      const cartridgeResult = await cartridgeRegistry.executeCartridge(data.customer.stamps, data.customer.id)
+      if (cartridgeResult && cartridgeResult.success && cartridgeResult.redirect) {
+        console.log('카트리지 리다이렉트:', cartridgeResult.redirect)
+        window.location.href = cartridgeResult.redirect
+        return
       }
       
       // Check for existing unused coupons
@@ -172,13 +175,20 @@ export default function Home() {
   const handleNewCustomerRegistration = async (customerData: CustomerRegistration) => {
     try {
       // 고객 등록
-      const { data: newCustomer, error: customerError } = await supabase
-        .from('customers')
-        .insert([customerData])
-        .select()
-        .single()
-
-      if (customerError) throw customerError
+      const customerResponse = await fetch('/api/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(customerData),
+      })
+      
+      if (!customerResponse.ok) {
+        const errorData = await customerResponse.json()
+        throw new Error(errorData.error || '고객 등록에 실패했습니다.')
+      }
+      
+      const { customer: newCustomer } = await customerResponse.json()
 
       // 로컬스토리지에 저장
       localStorage.setItem('tagstamp_customer_id', newCustomer.id)
@@ -200,16 +210,12 @@ export default function Home() {
       
       setCustomer(data.customer)
       
-      // Check for coupon lottery trigger (5 stamps) - should not happen for new customers
-      if (data.eventTriggered?.type === 'lottery') {
-        console.warn('Unexpected lottery trigger for new customer!')
-        // Check if lottery already completed in this session to prevent infinite loop
-        const lotteryCompleted = sessionStorage.getItem(`lottery_completed_${data.customer.id}`)
-        if (!lotteryCompleted) {
-          // Redirect to coupon page
-          window.location.href = '/coupon'
-          return
-        }
+      // 카트리지 시스템으로 이벤트 처리 (신규 고객도 해당)
+      const cartridgeResult = await cartridgeRegistry.executeCartridge(data.customer.stamps, data.customer.id)
+      if (cartridgeResult && cartridgeResult.success && cartridgeResult.redirect) {
+        console.log('신규 고객 카트리지 리다이렉트:', cartridgeResult.redirect)
+        window.location.href = cartridgeResult.redirect
+        return
       }
       
       // Check for existing unused coupons (though unlikely for new customers)

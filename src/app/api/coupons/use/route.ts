@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/firebase'
+import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,17 +14,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if coupon exists and is valid
-    const { data: coupon, error: fetchError } = await supabase
-      .from('coupons')
-      .select('*')
-      .eq('id', body.coupon_id)
-      .eq('customer_id', body.customer_id)
-      .single()
-
-    if (fetchError || !coupon) {
-      console.error('Coupon fetch error:', fetchError)
+    const couponDoc = await getDoc(doc(db, 'coupons', body.coupon_id))
+    
+    if (!couponDoc.exists()) {
       return NextResponse.json(
-        { error: 'Coupon not found.', details: fetchError?.message },
+        { error: 'Coupon not found.' },
+        { status: 404 }
+      )
+    }
+    
+    const coupon = { id: couponDoc.id, ...couponDoc.data() } as {
+      id: string;
+      customer_id: string;
+      type: string;
+      value: number;
+      used: boolean;
+      expires_at: Timestamp;
+    }
+    
+    if (coupon.customer_id !== body.customer_id) {
+      return NextResponse.json(
+        { error: 'Coupon not found.' },
         { status: 404 }
       )
     }
@@ -36,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if expired
-    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+    if (coupon.expires_at && coupon.expires_at.toDate() < new Date()) {
       return NextResponse.json(
         { error: 'Coupon has expired.' },
         { status: 400 }
@@ -44,28 +55,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark coupon as used
-    const { error: updateError } = await supabase
-      .from('coupons')
-      .update({
+    try {
+      await updateDoc(doc(db, 'coupons', body.coupon_id), {
         used: true,
-        used_at: new Date().toISOString()
+        used_at: new Date()
       })
-      .eq('id', body.coupon_id)
-
-    if (updateError) {
+    } catch (updateError) {
       console.error('Coupon update error:', updateError)
       return NextResponse.json(
-        { error: 'Failed to use coupon.', details: updateError.message },
+        { error: 'Failed to use coupon.', details: updateError instanceof Error ? updateError.message : 'Unknown error' },
         { status: 500 }
       )
     }
 
     // Get customer info for admin notification
-    const { data: customer } = await supabase
-      .from('customers')
-      .select('name, phone')
-      .eq('id', body.customer_id)
-      .single()
+    const customerDoc = await getDoc(doc(db, 'customers', body.customer_id))
+    const customer = customerDoc.exists() ? customerDoc.data() : null
 
     // TODO: Send notification to admin
     // This could be implemented with:
@@ -79,7 +84,7 @@ export async function POST(request: NextRequest) {
       phone: customer?.phone,
       coupon_type: coupon.type,
       coupon_value: coupon.value,
-      used_at: new Date().toISOString()
+      used_at: new Date()
     })
 
     return NextResponse.json({ 
@@ -88,7 +93,7 @@ export async function POST(request: NextRequest) {
       coupon: {
         ...coupon,
         used: true,
-        used_at: new Date().toISOString()
+        used_at: new Date()
       }
     })
   } catch (error) {

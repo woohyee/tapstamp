@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
-import ScratchCard from '@/components/ScratchCard'
+import ScratchCard from '@/cartridges/5StampLottery/ScratchCard'
 
 // 0-99 index lottery table based on probability
 const LOTTERY_TABLE = [

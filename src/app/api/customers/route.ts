@@ -1,53 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/firebase'
+import { addDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { CustomerRegistration } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔥 Customer registration API called')
     const body: CustomerRegistration = await request.json()
+    console.log('📝 Request body:', body)
     
     if (!body.name || !body.phone) {
+      console.log('❌ Missing required fields')
       return NextResponse.json(
         { error: '이름과 전화번호는 필수입니다.' },
         { status: 400 }
       )
     }
 
-    const { data: existingCustomer } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('phone', body.phone)
-      .single()
+    console.log('🔍 Checking for existing customer with phone:', body.phone)
+    
+    const customersQuery = query(
+      collection(db, 'customers'), 
+      where('phone', '==', body.phone)
+    )
+    const existingSnapshot = await getDocs(customersQuery)
+    console.log('📊 Existing customer check result:', existingSnapshot.empty ? 'No duplicates' : 'Duplicate found')
 
-    if (existingCustomer) {
+    if (!existingSnapshot.empty) {
+      console.log('❌ Duplicate phone number found')
       return NextResponse.json(
         { error: '이미 등록된 전화번호입니다.' },
         { status: 409 }
       )
     }
 
-    const { data: customer, error } = await supabase
-      .from('customers')
-      .insert([
-        {
-          name: body.name,
-          phone: body.phone,
-          email: body.email,
-          stamps: 0
-        }
-      ])
-      .select()
-      .single()
+    try {
+      console.log('💾 Creating new customer in Firebase...')
+      const docRef = await addDoc(collection(db, 'customers'), {
+        name: body.name,
+        phone: body.phone,
+        email: body.email || null,
+        stamps: 0,
+        vip_status: false,
+        vip_expires_at: null,
+        created_at: new Date()
+      })
 
-    if (error) {
-      console.error('Database error:', error)
+      console.log('✅ Customer created successfully with ID:', docRef.id)
+
+      const customer = {
+        id: docRef.id,
+        name: body.name,
+        phone: body.phone,
+        email: body.email || null,
+        stamps: 0,
+        vip_status: false,
+        vip_expires_at: null,
+        created_at: new Date()
+      }
+
+      console.log('📤 Returning customer data:', customer)
+      return NextResponse.json({ customer })
+    } catch (error) {
+      console.error('🚨 Firebase connection error:', error)
+      console.error('🚨 Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: error instanceof Error ? (error as { code?: string }).code : 'N/A',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      })
       return NextResponse.json(
         { error: '고객 등록에 실패했습니다.' },
         { status: 500 }
       )
     }
-
-    return NextResponse.json({ customer })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json(

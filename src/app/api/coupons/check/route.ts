@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/firebase'
+import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,27 +15,42 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all unused coupons for the customer
-    const { data: coupons, error } = await supabase
-      .from('coupons')
-      .select('*')
-      .eq('customer_id', customerId)
-      .eq('used', false)
-      .gte('expires_at', new Date().toISOString()) // Not expired
-      .order('created_at', { ascending: false })
+    try {
+      const couponsQuery = query(
+        collection(db, 'coupons'),
+        where('customer_id', '==', customerId),
+        where('used', '==', false),
+        where('expires_at', '>', new Date()),
+        orderBy('expires_at', 'desc'),
+        orderBy('created_at', 'desc')
+      )
+      
+      const couponsSnapshot = await getDocs(couponsQuery)
+      const coupons = couponsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Array<{
+        id: string;
+        customer_id: string;
+        type: string;
+        value: number;
+        used: boolean;
+        expires_at: Timestamp;
+        created_at: Timestamp;
+      }>
 
-    if (error) {
+      return NextResponse.json({ 
+        success: true,
+        coupons: coupons || [],
+        hasUnusedCoupons: coupons && coupons.length > 0
+      })
+    } catch (error) {
       console.error('Error fetching coupons:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch coupons.', details: error.message },
+        { error: 'Failed to fetch coupons.', details: error instanceof Error ? error.message : 'Unknown error' },
         { status: 500 }
       )
     }
-
-    return NextResponse.json({ 
-      success: true,
-      coupons: coupons || [],
-      hasUnusedCoupons: coupons && coupons.length > 0
-    })
   } catch (error) {
     console.error('Coupon check API error:', error)
     return NextResponse.json(
