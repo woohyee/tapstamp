@@ -14,6 +14,6 @@
       "discount_20": 25
     },
     "couponExpireDays": 30,
-    "redirectUrl": "/cartridges/5StampLottery/play"
+    "redirectUrl": "/coupon"
   }
 }

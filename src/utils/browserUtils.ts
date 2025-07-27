@@ -10,14 +10,7 @@ export const closeBrowserOrRedirect = () => {
       return
     }
 
-    // 2. 모바일 브라우저에서 탭 닫기 시도
-    if (window.history.length > 1) {
-      // 브라우저 히스토리가 있으면 뒤로가기
-      window.history.back()
-      return
-    }
-
-    // 3. 빈 페이지로 이동 후 닫기 시도
+    // 2. 빈 페이지로 이동 후 닫기 시도 (뒤로가기 제거)
     window.location.replace('about:blank')
     
     // 4. 약간의 지연 후 다시 닫기 시도
@@ -198,13 +191,7 @@ const showAdminCompletePage = () => {
       return
     }
 
-    // 2. 모바일 브라우저에서 탭 닫기 시도
-    if (window.history.length > 1) {
-      window.history.back()
-      return
-    }
-
-    // 3. 빈 페이지로 이동 후 닫기 시도
+    // 2. 빈 페이지로 이동 후 닫기 시도 (뒤로가기 제거)
     window.location.replace('about:blank')
     
     setTimeout(() => {
