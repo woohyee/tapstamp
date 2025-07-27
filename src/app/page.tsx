@@ -64,8 +64,9 @@ export default function Home() {
 
       const data = { id: customerDoc.id, ...customerDoc.data() } as Customer
 
-      // 기존 고객 - 세션에서 이미 처리되었는지 확인
-      const sessionKey = `stamp_processed_${customerId}_${Date.now().toString().slice(0, -5)}` // 5분 단위로 구분
+      // 기존 고객 - 세션에서 이미 처리되었는지 확인 (더 강화된 중복 방지)
+      const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+      const sessionKey = `stamp_processed_${customerId}_${today}` 
       const alreadyProcessed = sessionStorage.getItem(sessionKey)
       
       if (alreadyProcessed) {

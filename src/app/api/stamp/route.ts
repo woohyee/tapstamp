@@ -120,6 +120,42 @@ async function checkCartridgeEvents(customer: {
   
   console.log('🎮 Checking cartridge events for customer:', customer.id, 'stamps:', stamps)
   
+  // 5개 스탬프 직접 체크 (강제 실행)
+  if (stamps === 5) {
+    console.log('🚨 EXACTLY 5 STAMPS DETECTED! Force triggering event...')
+    
+    // events 컬렉션에서 이미 참여했는지 확인
+    const { query, where, getDocs, collection } = await import('firebase/firestore')
+    const eventsQuery = query(
+      collection(db, 'events'), 
+      where('customer_id', '==', customer.id),
+      where('event_type', '==', 'lottery')
+    )
+    const eventsSnapshot = await getDocs(eventsQuery)
+    
+    if (eventsSnapshot.empty) {
+      console.log('✅ No lottery participation found, triggering event...')
+      
+      // 이벤트 기록 추가
+      const { addDoc } = await import('firebase/firestore')
+      await addDoc(collection(db, 'events'), {
+        customer_id: customer.id,
+        event_type: 'lottery',
+        event_data: { eligible: true, direct_trigger: true },
+        created_at: new Date()
+      })
+      
+      return {
+        type: 'cartridge',
+        redirect: '/coupon',
+        message: '5개 스탬프 달성! 랜덤 쿠폰 이벤트!',
+        data: { customerId: customer.id, eventType: 'lottery' }
+      }
+    } else {
+      console.log('❌ Customer already participated in lottery event')
+    }
+  }
+  
   try {
     // 카트리지 레지스트리에서 모든 카트리지 확인
     const registry = new CartridgeRegistry()
