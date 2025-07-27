@@ -153,11 +153,10 @@ export default function Home() {
 
       setCustomer(data.customer)
       
-      // 카트리지 시스템으로 이벤트 처리
-      const cartridgeResult = await cartridgeRegistry.executeCartridge(data.customer.stamps, data.customer.id)
-      if (cartridgeResult && cartridgeResult.success && cartridgeResult.redirect) {
-        console.log('카트리지 리다이렉트:', cartridgeResult.redirect)
-        window.location.href = cartridgeResult.redirect
+      // API에서 카트리지 이벤트 처리 결과 확인
+      if (data.eventTriggered && data.eventTriggered.type === 'cartridge' && data.eventTriggered.redirect) {
+        console.log('🎮 Cartridge event triggered, redirecting to:', data.eventTriggered.redirect)
+        window.location.href = data.eventTriggered.redirect
         return
       }
       
@@ -210,11 +209,10 @@ export default function Home() {
       
       setCustomer(data.customer)
       
-      // 카트리지 시스템으로 이벤트 처리 (신규 고객도 해당)
-      const cartridgeResult = await cartridgeRegistry.executeCartridge(data.customer.stamps, data.customer.id)
-      if (cartridgeResult && cartridgeResult.success && cartridgeResult.redirect) {
-        console.log('신규 고객 카트리지 리다이렉트:', cartridgeResult.redirect)
-        window.location.href = cartridgeResult.redirect
+      // API에서 카트리지 이벤트 처리 결과 확인 (신규 고객도 해당)
+      if (data.eventTriggered && data.eventTriggered.type === 'cartridge' && data.eventTriggered.redirect) {
+        console.log('🎮 New customer cartridge event triggered, redirecting to:', data.eventTriggered.redirect)
+        window.location.href = data.eventTriggered.redirect
         return
       }
       

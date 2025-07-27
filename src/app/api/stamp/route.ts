@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
-import { doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore'
+import { CartridgeRegistry } from '@/cartridges/base/CartridgeRegistry'
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
       console.error('🚨 Stamp insert error:', stampError)
       console.error('🚨 Stamp error details:', {
         message: stampError instanceof Error ? stampError.message : 'Unknown error',
-        code: stampError instanceof Error ? (stampError as any).code : 'N/A',
+        code: stampError instanceof Error ? (stampError as { code?: string }).code : 'N/A',
         stack: stampError instanceof Error ? stampError.stack : 'No stack trace'
       })
       return NextResponse.json(
@@ -90,8 +91,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 쿠폰 발급 체크
-    const eventTriggered = await checkAndIssueCoupons(updatedCustomer)
+    // 카트리지 시스템으로 이벤트 체크
+    const eventTriggered = await checkCartridgeEvents(updatedCustomer)
 
     return NextResponse.json({ 
       customer: updatedCustomer,
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function checkAndIssueCoupons(customer: {
+async function checkCartridgeEvents(customer: {
   id: string;
   name: string;
   phone: string;
@@ -116,33 +117,47 @@ async function checkAndIssueCoupons(customer: {
   vip_expires_at?: Timestamp;
 }) {
   const stamps = customer.stamps
-  let eventTriggered = null
   
-  console.log('Checking coupons for customer:', customer.id, 'stamps:', stamps)
+  console.log('🎮 Checking cartridge events for customer:', customer.id, 'stamps:', stamps)
   
-  // 5개 스탬프 복권 이벤트 - EXACTLY 5 stamps only
-  if (stamps === 5) {
-    console.log('5 stamps reached! Checking lottery eligibility...')
-    // 이미 복권 이벤트에 참여했는지 확인
-    const eventsQuery = query(
-      collection(db, 'events'), 
-      where('customer_id', '==', customer.id),
-      where('event_type', '==', 'lottery')
-    )
-    const eventsSnapshot = await getDocs(eventsQuery)
+  try {
+    // 카트리지 레지스트리에서 모든 카트리지 확인
+    const registry = new CartridgeRegistry()
     
-    if (eventsSnapshot.empty) {
-      // 복권 이벤트 참여 기록 추가
-      await addDoc(collection(db, 'events'), {
-        customer_id: customer.id,
-        event_type: 'lottery',
-        event_data: { eligible: true },
-        created_at: new Date()
-      })
-      
-      eventTriggered = { type: 'lottery', stamps: 5 }
+    // 5StampLottery 카트리지 등록
+    const { FiveStampLotteryCartridge } = await import('@/cartridges/5StampLottery')
+    registry.register('5StampLottery', new FiveStampLotteryCartridge())
+    
+    const result = await registry.executeCartridge(stamps, customer.id)
+    
+    if (result && result.success && result.redirect) {
+      console.log('✅ Cartridge event triggered:', result)
+      return {
+        type: 'cartridge',
+        redirect: result.redirect,
+        message: result.message,
+        data: result.data
+      }
     }
+    
+    // 기존 쿠폰 발급 로직 유지
+    await checkAndIssueCoupons(customer)
+    
+    return null
+  } catch (error) {
+    console.error('🚨 Cartridge system error:', error)
+    // 카트리지 오류 시 기존 쿠폰 시스템으로 fallback
+    return await checkAndIssueCoupons(customer)
   }
+}
+
+async function checkAndIssueCoupons(customer: {
+  id: string;
+  stamps: number;
+}) {
+  const stamps = customer.stamps
+  
+  console.log('💰 Checking regular coupons for customer:', customer.id, 'stamps:', stamps)
   
   if (stamps === 10) {
     await addDoc(collection(db, 'coupons'), {
@@ -177,5 +192,5 @@ async function checkAndIssueCoupons(customer: {
     })
   }
   
-  return eventTriggered
+  return null
 }
