@@ -154,9 +154,9 @@ export default function Home() {
 
       setCustomer(data.customer)
       
-      // API에서 카트리지 이벤트 처리 결과 확인
-      if (data.eventTriggered && data.eventTriggered.type === 'cartridge' && data.eventTriggered.redirect) {
-        console.log('🎮 Cartridge event triggered, redirecting to:', data.eventTriggered.redirect)
+      // API에서 이벤트 처리 결과 확인
+      if (data.eventTriggered && data.eventTriggered.redirect) {
+        console.log('🎉 Event triggered, redirecting to:', data.eventTriggered.redirect)
         window.location.href = data.eventTriggered.redirect
         return
       }
