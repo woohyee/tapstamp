@@ -227,40 +227,289 @@ The system prioritizes simplicity: visit = stamp, with business logic for reward
 - Applies to all customers (new or existing, regardless of visit number)
 - Only triggers once per customer (duplicate participation prevented via events table)
 
-**5 Stamps Detection Logic:**
+## Critical Issues Resolved During Development
+
+### Issue 1: 5개 스탬프 이벤트가 트리거되지 않는 문제
+
+**Problem Description:**
+- 고객이 5개 스탬프에 도달해도 lottery 이벤트가 실행되지 않음
+- /coupon 페이지로 리다이렉트되지 않음
+- 카트리지 시스템이 복잡하여 실행되지 않음
+
+**Root Cause Analysis:**
+- 복잡한 카트리지 시스템 구조로 인한 실행 실패
+- checkCartridgeEvents 함수가 실제로는 호출되지 않음
+- 프론트엔드에서 API 응답 처리 로직 미스매치
+
+**Solution Applied:**
+1. **복잡한 카트리지 시스템 완전 제거**
+2. **직접적인 5개 스탬프 감지 로직 구현**:
 ```javascript
-// In /api/stamp/route.ts - checkAndIssueCoupons function
-async function checkAndIssueCoupons(customer: { id: string; stamps: number }) {
+// In /api/stamp/route.ts - checkStampEvents function
+async function checkStampEvents(customer: { id: string; stamps: number }) {
   const stamps = customer.stamps
-  let eventTriggered = null
   
-  // 5개 스탬프 복권 이벤트 - EXACTLY 5 stamps only
+  // 5개 스탬프 직접 체크
   if (stamps === 5) {
-    // Check if customer already participated in lottery
-    const { data: existingEvent } = await supabase
-      .from('events')
-      .select('*')
-      .eq('customer_id', customer.id)
-      .eq('event_type', 'lottery')
-      .single()
+    console.log('🚨 5 STAMPS DETECTED! Checking lottery eligibility...')
     
-    if (!existingEvent) {
-      // Add lottery event participation record
-      await supabase
-        .from('events')
-        .insert([{
-          customer_id: customer.id,
-          event_type: 'lottery',
-          event_data: { eligible: true }
-        }])
+    // Firebase events 컬렉션에서 중복 참여 확인
+    const { query, where, getDocs, collection, addDoc } = await import('firebase/firestore')
+    const eventsQuery = query(
+      collection(db, 'events'), 
+      where('customer_id', '==', customer.id),
+      where('event_type', '==', 'lottery')
+    )
+    const eventsSnapshot = await getDocs(eventsQuery)
+    
+    if (eventsSnapshot.empty) {
+      // 이벤트 참여 기록 추가
+      await addDoc(collection(db, 'events'), {
+        customer_id: customer.id,
+        event_type: 'lottery',
+        event_data: { eligible: true },
+        created_at: new Date()
+      })
       
-      eventTriggered = { type: 'lottery', stamps: 5 }
+      return {
+        type: 'lottery',
+        redirect: '/coupon',
+        message: '5개 스탬프 달성! 랜덤 쿠폰 이벤트!',
+        stamps: 5
+      }
+    }
+  }
+  return null
+}
+```
+
+3. **프론트엔드 이벤트 처리 단순화**:
+```javascript
+// 프론트엔드에서 이벤트 응답 처리
+if (data.eventTriggered && data.eventTriggered.redirect) {
+  console.log('🎉 Event triggered, redirecting to:', data.eventTriggered.redirect)
+  window.location.href = data.eventTriggered.redirect
+  return
+}
+```
+
+### Issue 2: Done 버튼 클릭 시 두 번째 스탬프 자동 적립 문제
+
+**Problem Description:**
+- 첫 스탬프 적립 후 Done 버튼 클릭
+- 브라우저가 뒤로가기되면서 새로운 NFC 스캔으로 인식
+- 의도하지 않은 두 번째 스탬프 자동 적립
+
+**Root Cause Analysis:**
+- closeBrowserOrRedirect 함수에서 `window.history.back()` 호출
+- 뒤로가기 시 페이지 새로고침으로 인한 checkCustomerAndProcess 재실행
+- 세션 키가 5분 단위로만 구분되어 중복 방지 효과 부족
+
+**Solution Applied:**
+1. **window.history.back() 제거**:
+```javascript
+// Before (문제 코드)
+if (window.history.length > 1) {
+  window.history.back()  // 이 부분이 문제 원인
+  return
+}
+
+// After (해결된 코드)
+// 뒤로가기 로직 완전 제거하고 바로 about:blank으로 이동
+window.location.replace('about:blank')
+```
+
+2. **세션 키를 날짜 기반으로 강화**:
+```javascript
+// Before (문제 코드)
+const sessionKey = `stamp_processed_${customerId}_${Date.now().toString().slice(0, -5)}` // 5분 단위
+
+// After (해결된 코드)
+const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+const sessionKey = `stamp_processed_${customerId}_${today}` // 하루 단위
+```
+
+3. **신규 고객 등록 로직 개선**:
+```javascript
+// 신규 고객 등록 시 바로 1개 스탬프로 생성
+const docRef = await addDoc(collection(db, 'customers'), {
+  name: body.name,
+  phone: body.phone,
+  email: body.email || null,
+  stamps: 1,  // 바로 1개로 시작
+  vip_status: false,
+  vip_expires_at: null,
+  created_at: new Date()
+})
+
+// 첫 스탬프 기록도 함께 생성
+await addDoc(collection(db, 'stamps'), {
+  customer_id: docRef.id,
+  amount: 0,
+  created_at: new Date()
+})
+```
+
+### Issue 3: Firebase 데이터가 콘솔에서 보이지 않는 문제
+
+**Problem Description:**
+- API 호출은 성공하지만 Firebase 콘솔에서 데이터가 보이지 않음
+- "Error loading documents" 메시지 표시
+
+**Root Cause Analysis:**
+- Firebase 보안 규칙이 콘솔 접근을 차단
+- 초기 규칙이 timestamp 기반으로 설정되어 있음
+
+**Solution Applied:**
+```javascript
+// Firebase 보안 규칙 수정
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;  // 테스트용으로 모든 접근 허용
+    }
+  }
+}
+```
+
+## Admin Real-time Notification System
+
+**Implementation for Real-world Operations:**
+- 관리자가 `/admin` 페이지를 열어두면 실시간으로 쿠폰 사용 알림 수신
+- 3초마다 새로운 쿠폰 사용 내역을 폴링하여 확인
+- 브라우저 알림 + 소리 알림으로 즉시 통지
+- 최근 사용된 쿠폰 목록을 실시간으로 업데이트
+
+**Admin Workflow:**
+1. https://tapstamp.vercel.app/admin 접속
+2. 비밀번호 "123" 입력하여 로그인
+3. "알림 허용" 클릭하여 브라우저 알림 권한 승인
+4. 페이지를 열어둔 상태로 대기
+5. 고객이 쿠폰 사용 시 자동으로 알림 수신
+
+**5 Stamps Detection Logic (Final Implementation):**
+```javascript
+// Simplified direct detection in /api/stamp/route.ts
+async function checkStampEvents(customer: { id: string; stamps: number }) {
+  const stamps = customer.stamps
+  
+  if (stamps === 5) {
+    // Firebase events collection에서 중복 참여 확인
+    const eventsQuery = query(
+      collection(db, 'events'), 
+      where('customer_id', '==', customer.id),
+      where('event_type', '==', 'lottery')
+    )
+    const eventsSnapshot = await getDocs(eventsQuery)
+    
+    if (eventsSnapshot.empty) {
+      // 이벤트 참여 기록 추가
+      await addDoc(collection(db, 'events'), {
+        customer_id: customer.id,
+        event_type: 'lottery',
+        event_data: { eligible: true },
+        created_at: new Date()
+      })
+      
+      return {
+        type: 'lottery',
+        redirect: '/coupon',
+        message: '5개 스탬프 달성! 랜덤 쿠폰 이벤트!',
+        stamps: 5
+      }
     }
   }
   
-  return eventTriggered
+  return null
 }
 ```
+
+## Development Lessons Learned
+
+**Key Principles for Debugging Complex Systems:**
+1. **간단한 직접 구현이 복잡한 추상화보다 낫다**
+   - 카트리지 시스템 대신 직접적인 if문 사용
+   - 과도한 엔지니어링 지양
+
+2. **실제 사용자 행동 패턴 고려**
+   - Done 버튼 → 뒤로가기 → 새로운 스캔 인식 패턴 발견
+   - 브라우저 동작에 대한 정확한 이해 필요
+
+3. **단계별 문제 해결**
+   - Firebase 연결 → Done 버튼 → 5개 스탬프 → 관리자 알림 순서로 해결
+   - 한 번에 모든 문제를 해결하려 하지 않음
+
+4. **실무 환경 시뮬레이션**
+   - 관리자가 항상 현장에 있다는 전제 하에 실시간 알림 시스템 설계
+   - 실제 운영 시나리오를 바탕으로 한 해결책 도출
+
+**Final System Status:**
+- ✅ NFC 기반 고객 식별 및 스탬프 적립
+- ✅ 5개 스탬프 달성 시 자동 lottery 이벤트 트리거
+- ✅ 스크래치 카드 게임 및 쿠폰 발급
+- ✅ 쿠폰 사용 시 관리자 실시간 알림
+- ✅ Firebase 데이터베이스에 모든 내역 영구 저장
+- ✅ 중복 스탬프 적립 방지 시스템
+- ✅ 8월 1일 런칭 준비 완료
+
+## Future Improvements (Post-Launch TODO)
+
+### 🔧 카트리지 시스템 재구현 (우선순위: 높음)
+
+**왜 필요한가:**
+- 현재는 5개 스탬프 이벤트만 하드코딩되어 있음
+- 향후 다양한 이벤트 추가 시 코드가 복잡해질 것
+
+**올바른 구현 방향:**
+```javascript
+// 조건 확인 (if문) + 모듈 실행 (카트리지) 조합
+if (stamps === 5) {
+  const lottery = new FiveStampLotteryCartridge()
+  const result = await lottery.execute(customerId)
+  return result
+}
+
+if (stamps === 10) {
+  const coupon = new TenStampCouponCartridge() 
+  await coupon.execute(customerId)
+}
+
+if (stamps === 15) {
+  const bigCoupon = new FifteenStampBigCouponCartridge()
+  await bigCoupon.execute(customerId)
+}
+```
+
+**구현해야 할 추가 이벤트들:**
+- 10개 스탬프: 자동 10% 할인 쿠폰 발급
+- 15개 스탬프: 자동 20% 할인 쿠폰 발급  
+- 30개 스탬프: VIP 승급 이벤트
+- 크리스마스/신정: 시즌 특별 이벤트
+- 생일 이벤트: 개인화된 쿠폰
+- 첫 방문 보너스: 신규 고객 환영 이벤트
+
+**카트리지 시스템 설계 원칙:**
+1. **간단한 구조**: 과도한 추상화 지양
+2. **명확한 책임**: 하나의 카트리지는 하나의 이벤트만 담당
+3. **쉬운 추가**: 새로운 이벤트 카트리지를 쉽게 추가할 수 있어야 함
+4. **독립적 실행**: 각 카트리지는 독립적으로 실행 가능해야 함
+
+**구현 시점:**
+- 런칭 후 안정화 완료 시점
+- 두 번째 이벤트 요구사항이 나올 때
+- 개발 시간 여유가 있을 때
+
+**⚠️ 중요:** 카트리지는 좋은 패턴이지만, 긴급 상황에서는 직접 구현이 더 안전함. 시간 여유가 있을 때 차근차근 구현할 것.
+
+## Lottery Event System (Updated Implementation)
+
+**Event Flow:**
+1. **5 Stamps Achieved**: Customer gets 5th stamp → automatic redirect to `/coupon` page
+2. **Congratulations Page**: "You've won a random coupon lottery!" with PLAY button  
+3. **Scratch Card Game**: Real scratch-to-reveal interface using Canvas API
+4. **Result Display**: Prize revealed after 30% of card is scratched
+5. **Coupon Usage**: Winner can use immediately (USE NOW) or save for later (Use Later)
 
 **IMPORTANT - Universal Application:**
 - This logic applies to ALL stamp addition scenarios:
