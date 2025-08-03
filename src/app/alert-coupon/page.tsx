@@ -92,8 +92,9 @@ function AlertCouponContent() {
   }
 
   const handleUseLater = () => {
-    // Go back to stamp confirmation page, skip coupon check
-    router.push(`/?customer_id=${customerId}&stamps=${stamps}&skip_coupon_check=true`)
+    // 🚨 CRITICAL: 브라우저 닫기 (추가 스탬프 적립 방지)
+    // 쿠폰은 이미 데이터베이스에 저장되어 있음 - 다음 방문 시 다시 표시됨
+    closeBrowserOrRedirect()
   }
 
   if (loading) {

@@ -237,20 +237,13 @@ export default function CouponPage() {
         console.log('Coupon saved for later successfully:', data)
         setCouponSavedForLater(true)
         
-        // 3초 후 자동으로 브라우저 닫기
-        setTimeout(() => {
-          try {
-            if (window.opener) {
-              window.close()
-            } else {
-              window.close()
-            }
-          } catch (error) {
-            console.log('Cannot close window:', error)
-            // Fallback: redirect to a blank page
-            window.location.replace('about:blank')
-          }
-        }, 3000)
+        // 🚨 CRITICAL: 즉시 브라우저 닫기 (스탬프 추가 적립 방지)
+        try {
+          window.close()
+        } catch (error) {
+          console.log('Cannot close window, redirecting to blank page:', error)
+          window.location.replace('about:blank')
+        }
       } else {
         let errorData
         try {
