@@ -77,7 +77,7 @@ export default function Home() {
       console.log('✅ Not processed yet, proceeding with stamp addition')
 
       // 기존 고객 - 즉시 스탬프 적립
-      await addStampToExistingCustomer(data, sessionKey)
+      await addStampToExistingCustomer(data)
     } catch {
       setError('System error occurred.')
       setLoading(false)
@@ -116,7 +116,7 @@ export default function Home() {
         }
         
         // 스탬프 적립
-        await addStampToExistingCustomer(existingCustomer, sessionKey)
+        await addStampToExistingCustomer(existingCustomer)
         setNeedPhoneNumber(false)
       } else {
         // 신규 고객 - 전화번호를 그대로 가지고 등록 폼으로
@@ -131,7 +131,7 @@ export default function Home() {
     }
   }
 
-  const addStampToExistingCustomer = async (customerData: Customer, sessionKey: string) => {
+  const addStampToExistingCustomer = async (customerData: Customer) => {
     try {
       console.log('🎯 ALWAYS adding stamp first, then checking for unused coupons...')
       
@@ -150,8 +150,7 @@ export default function Home() {
         throw new Error(data.error || 'Failed to add stamp')
       }
 
-      // 세션에 처리 완료 표시
-      sessionStorage.setItem(sessionKey, 'true')
+      // 세션 처리 완료 (테스트용으로 sessionKey 제거)
 
       // 업데이트된 고객 정보 설정
       setCustomer(data.customer)
