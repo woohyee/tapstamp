@@ -31,33 +31,48 @@ export default function ScratchCard({ result, onComplete }: ScratchCardProps) {
     canvas.width = 300
     canvas.height = 200
 
-    // Draw silver foil background
+    // Draw bright silver foil background with blue hints
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
-    gradient.addColorStop(0, '#E5E7EB')
-    gradient.addColorStop(0.25, '#F9FAFB')
-    gradient.addColorStop(0.5, '#D1D5DB')
-    gradient.addColorStop(0.75, '#F3F4F6')
-    gradient.addColorStop(1, '#E5E7EB')
+    gradient.addColorStop(0, '#F0F8FF')    // Alice blue (bright)
+    gradient.addColorStop(0.2, '#E6F3FF')  // Very light blue
+    gradient.addColorStop(0.4, '#FFFFFF')  // Pure white (silver highlight)
+    gradient.addColorStop(0.6, '#F8FAFC')  // Near white with blue tint
+    gradient.addColorStop(0.8, '#E0F2FE')  // Light sky blue
+    gradient.addColorStop(1, '#F0F9FF')    // Blue-white finish
     
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Add scratchy texture
-    for (let i = 0; i < 1000; i++) {
+    // Add bright metallic texture with blue hints
+    for (let i = 0; i < 1500; i++) {
       const x = Math.random() * canvas.width
       const y = Math.random() * canvas.height
-      const opacity = Math.random() * 0.3
-      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`
-      ctx.fillRect(x, y, 1, 1)
+      const opacity = Math.random() * 0.4
+      const blue = Math.random() > 0.7 // 30% chance for blue sparkle
+      if (blue) {
+        ctx.fillStyle = `rgba(59, 130, 246, ${opacity * 0.5})` // Blue sparkles
+      } else {
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})` // White sparkles
+      }
+      ctx.fillRect(x, y, Math.random() > 0.5 ? 2 : 1, Math.random() > 0.5 ? 2 : 1)
     }
 
-    // Add "SCRATCH HERE" text
-    ctx.fillStyle = '#6B7280'
+    // Add bright metallic shine effect
+    const shineGradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
+    shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0)')
+    shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.6)')
+    shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
+    ctx.fillStyle = shineGradient
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Add "SCRATCH HERE" text with better contrast
+    ctx.fillStyle = '#1E3A8A' // Dark blue for better visibility
     ctx.font = 'bold 24px Arial'
     ctx.textAlign = 'center'
     ctx.fillText('SCRATCH HERE', canvas.width / 2, canvas.height / 2 - 10)
     
     ctx.font = '16px Arial'
+    ctx.fillStyle = '#3B82F6' // Medium blue
     ctx.fillText('🪙 Use mouse or finger to scratch', canvas.width / 2, canvas.height / 2 + 20)
 
   }, [])
@@ -189,20 +204,6 @@ export default function ScratchCard({ result, onComplete }: ScratchCardProps) {
         style={{ touchAction: 'none' }}
       />
 
-      {/* Scratch progress indicator */}
-      {scratchPercentage > 0 && scratchPercentage < 30 && (
-        <div className="mt-4 text-center">
-          <div className="text-sm text-gray-600 mb-2">
-            Keep scratching... {Math.round(scratchPercentage)}%
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(scratchPercentage, 30)}%` }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }

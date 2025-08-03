@@ -46,6 +46,10 @@ export default function Home() {
 
   const checkCustomerAndProcess = async () => {
     try {
+      // URL 파라미터 체크
+      const urlParams = new URLSearchParams(window.location.search)
+      const skipCouponCheck = urlParams.get('skip_coupon_check') === 'true'
+      
       const customerId = localStorage.getItem('tagstamp_customer_id')
       
       if (!customerId) {
@@ -173,15 +177,19 @@ export default function Home() {
         return
       }
       
-      // 🎫 스탬프 추가 후에 미사용 쿠폰 확인하여 별도 페이지로 리다이렉트
-      console.log('🔍 Checking for unused coupons after stamp addition...')
-      const hasUnusedCoupons = await checkAvailableCoupons(data.customer.id)
-      
-      if (hasUnusedCoupons) {
-        console.log('🎫 Found unused coupons! Redirecting to alert page.')
-        // 별도 쿠폰 알림 페이지로 리다이렉트
-        window.location.href = `/alert-coupon?customer_id=${data.customer.id}&stamps=${data.customer.stamps}`
-        return
+      // 🎫 스탬프 추가 후에 미사용 쿠폰 확인하여 별도 페이지로 리다이렉트 (skip_coupon_check가 아닌 경우에만)
+      if (!skipCouponCheck) {
+        console.log('🔍 Checking for unused coupons after stamp addition...')
+        const hasUnusedCoupons = await checkAvailableCoupons(data.customer.id)
+        
+        if (hasUnusedCoupons) {
+          console.log('🎫 Found unused coupons! Redirecting to alert page.')
+          // 별도 쿠폰 알림 페이지로 리다이렉트
+          window.location.href = `/alert-coupon?customer_id=${data.customer.id}&stamps=${data.customer.stamps}`
+          return
+        }
+      } else {
+        console.log('⏭️ Skipping coupon check as requested')
       }
       
       setCompleted(true)

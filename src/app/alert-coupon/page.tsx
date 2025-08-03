@@ -11,6 +11,7 @@ interface AvailableCoupon {
   id: string
   value: number
   expires_at: string
+  used?: boolean
 }
 
 function AlertCouponContent() {
@@ -68,12 +69,18 @@ function AlertCouponContent() {
 
       if (response.ok) {
         alert('Coupon used successfully! Admin has been notified.')
-        // Remove used coupon from the list
-        setAvailableCoupons(prev => prev.filter(c => c.id !== couponId))
-        if (availableCoupons.length <= 1) {
-          // No more coupons, go back to main
-          router.push('/')
-        }
+        // Mark coupon as used instead of removing it
+        setAvailableCoupons(prev => prev.map(c => 
+          c.id === couponId ? { ...c, used: true } : c
+        ))
+        
+        // Auto redirect after 3 seconds if all coupons are used
+        setTimeout(() => {
+          const allUsed = availableCoupons.every(c => c.used || c.id === couponId)
+          if (allUsed) {
+            router.push('/')
+          }
+        }, 3000)
       } else {
         const errorData = await response.json()
         alert(`Failed to use coupon: ${errorData.error}`)
@@ -85,8 +92,8 @@ function AlertCouponContent() {
   }
 
   const handleUseLater = () => {
-    // Go back to stamp confirmation page
-    router.push(`/?customer_id=${customerId}&stamps=${stamps}&from_coupon_alert=true`)
+    // Go back to stamp confirmation page, skip coupon check
+    router.push(`/?customer_id=${customerId}&stamps=${stamps}&skip_coupon_check=true`)
   }
 
   if (loading) {
@@ -156,23 +163,54 @@ function AlertCouponContent() {
               
               {/* Action Buttons */}
               <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    if (availableCoupons.length > 0) {
-                      handleUseCoupon(availableCoupons[0].id)
-                    }
-                  }}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-4 px-6 rounded-2xl font-black text-xl shadow-2xl transform hover:scale-[1.05] active:scale-[0.95] transition-all duration-200"
-                >
-                  ✅ Yes, Use Now
-                </button>
-                
-                <button
-                  onClick={handleUseLater}
-                  className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white py-4 px-6 rounded-2xl font-black text-xl shadow-2xl transform hover:scale-[1.05] active:scale-[0.95] transition-all duration-200"
-                >
-                  ❌ No, Use Later
-                </button>
+                {availableCoupons.length > 0 && availableCoupons[0].used ? (
+                  // Used coupon - 입체감 있는 빨간색 버튼
+                  <div className="w-full">
+                    <button className="w-full bg-gradient-to-b from-red-400 via-red-500 to-red-700 text-white py-4 px-6 rounded-2xl font-black text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.2),_inset_0_-1px_0_rgba(0,0,0,0.1),_0_4px_15px_rgba(0,0,0,0.3),_0_8px_25px_rgba(220,38,38,0.4)] border border-red-600 cursor-not-allowed transform scale-[0.98] transition-all duration-200">
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-2xl">🚫</span>
+                        <span className="tracking-wider">USED COUPON</span>
+                      </div>
+                      <div className="text-sm mt-1 opacity-80">
+                        This coupon has been used
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => router.push('/')}
+                      className="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    >
+                      Continue Shopping
+                    </button>
+                  </div>
+                ) : (
+                  // Available coupon - original buttons
+                  <>
+                    <button
+                      onClick={() => {
+                        if (availableCoupons.length > 0) {
+                          handleUseCoupon(availableCoupons[0].id)
+                        }
+                      }}
+                      className="w-full bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-700 hover:from-emerald-500 hover:to-emerald-800 text-white py-4 px-6 rounded-2xl font-black text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.2),_inset_0_-1px_0_rgba(0,0,0,0.1),_0_4px_15px_rgba(0,0,0,0.3),_0_8px_25px_rgba(16,185,129,0.4)] border border-emerald-600 transform hover:scale-[1.05] active:scale-[0.95] transition-all duration-200"
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-2xl">✅</span>
+                        <span className="tracking-wider">USE NOW</span>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={handleUseLater}
+                      className="w-full bg-gradient-to-b from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 text-white py-4 px-6 rounded-2xl font-black text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.2),_inset_0_-1px_0_rgba(0,0,0,0.1),_0_4px_15px_rgba(0,0,0,0.3),_0_8px_25px_rgba(107,114,128,0.4)] border border-gray-600 transform hover:scale-[1.05] active:scale-[0.95] transition-all duration-200"
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-2xl">⏰</span>
+                        <span className="tracking-wider">USE LATER</span>
+                      </div>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

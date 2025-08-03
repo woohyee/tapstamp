@@ -126,6 +126,12 @@ export default function AdminPage() {
             // Show current coupon prominently
             setCurrentCoupon(latestCoupon)
             
+            // Auto-clear current coupon after 30 seconds
+            setTimeout(() => {
+              setCurrentCoupon(null)
+              console.log('🧹 Auto-cleared coupon notification after 30 seconds')
+            }, 30000)
+            
             // Play notification sound (disabled for testing)
             // playNotificationSound()
             
@@ -337,20 +343,18 @@ export default function AdminPage() {
 
   // Main Dashboard
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 px-6 py-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header with Menu */}
-        <div className="flex items-center justify-between mb-6">
-          <Logo size="md" />
-          <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-blue-600">TapStamp Admin</h1>
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              ☰
-            </button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-4">
+      <div className="max-w-md mx-auto">
+        {/* Mobile Header */}
+        <div className="flex flex-col items-center mb-6">
+          <Logo size="lg" />
+          <h1 className="text-2xl font-bold text-blue-600 mt-2">Admin Dashboard</h1>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="mt-3 px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 shadow-lg"
+          >
+            ☰ Menu
+          </button>
         </div>
 
         {/* Dropdown Menu */}
@@ -448,57 +452,38 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* System Status */}
-        <div className="bg-white/90 rounded-lg shadow-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-              <span className="font-semibold">Real-time Monitoring</span>
-              <span className="text-sm text-gray-600">Every 2 seconds</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm">Alerts: <span className="font-bold text-green-600">{alertCount}</span></span>
-              <span className="text-sm">Updated: {lastUpdate}</span>
-              <span className={`text-xs px-2 py-1 rounded-full ${isOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {isOnline ? '🟢 Online' : '🔴 Offline'}
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Current Coupon Alert - MAIN FOCUS */}
+        {/* Current Coupon Alert - Mobile Optimized */}
         {currentCoupon ? (
-          <div className="bg-white/95 rounded-2xl shadow-2xl p-8 mb-6 border-4 border-orange-400">
+          <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl shadow-2xl p-6 mb-6 text-white animate-pulse">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-orange-600 mb-4">🎫 COUPON USED NOW</h2>
-              <div className="bg-gradient-to-r from-orange-100 to-red-100 rounded-xl p-6 mb-4">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">{currentCoupon.customer_name}</h3>
-                <p className="text-lg text-gray-600 mb-3">{currentCoupon.customer_phone}</p>
-                <div className={`inline-block px-6 py-3 rounded-full text-xl font-bold ${
-                  currentCoupon.value >= 20 ? 'bg-red-500 text-white' : 
-                  currentCoupon.value >= 15 ? 'bg-purple-500 text-white' :
-                  currentCoupon.value >= 10 ? 'bg-blue-500 text-white' : 'bg-green-500 text-white'
-                }`}>
+              <h2 className="text-2xl font-bold mb-3">🎫 COUPON USED!</h2>
+              <div className="bg-white/20 backdrop-blur rounded-xl p-4 mb-4">
+                <h3 className="text-xl font-bold mb-1">{currentCoupon.customer_name}</h3>
+                <p className="text-lg opacity-90 mb-3">{currentCoupon.customer_phone}</p>
+                <div className="bg-white text-gray-800 px-4 py-2 rounded-full text-lg font-bold">
                   {currentCoupon.value}% DISCOUNT
                 </div>
-                <p className="text-sm text-gray-500 mt-3">
-                  Used at: {currentCoupon.used_at ? new Date(currentCoupon.used_at).toLocaleString() : 'N/A'}
+                <p className="text-sm opacity-75 mt-2">
+                  {currentCoupon.used_at ? new Date(currentCoupon.used_at).toLocaleTimeString() : 'Just now'}
                 </p>
               </div>
               <button
                 onClick={dismissCurrentCoupon}
-                className="px-8 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold"
+                className="w-full py-3 bg-white text-gray-800 rounded-xl font-bold shadow-lg"
               >
-                ✓ Processed
+                ✓ Got it!
               </button>
             </div>
           </div>
         ) : (
-          <div className="bg-white/90 rounded-2xl shadow-xl p-8 text-center">
-            <div className="text-6xl mb-4">🎫</div>
-            <h2 className="text-2xl font-bold text-gray-600 mb-2">Waiting for Coupon Usage</h2>
-            <p className="text-gray-500">When a customer uses a coupon, it will appear here immediately</p>
-            <p className="text-sm text-gray-400 mt-4">Last checked: {lastUpdate || 'Checking...'}</p>
+          <div className="bg-white/90 rounded-2xl shadow-xl p-6 text-center">
+            <div className="text-4xl mb-3">🎫</div>
+            <h2 className="text-lg font-bold text-gray-600 mb-2">Waiting for Customer</h2>
+            <p className="text-gray-500 text-sm">Coupon usage alerts will appear here</p>
+            <div className="mt-4 text-xs text-gray-400">
+              Last check: {lastUpdate || 'Just now'}
+            </div>
           </div>
         )}
 
