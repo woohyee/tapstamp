@@ -352,7 +352,7 @@ export default function AdminPage() {
       <div className="max-w-md mx-auto">
         {/* Mobile Header */}
         <div className="flex flex-col items-center mb-6">
-          <Logo size="xl" />
+          <Logo size="2xl" showText={false} />
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 shadow-lg"
