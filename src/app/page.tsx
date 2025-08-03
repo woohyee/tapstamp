@@ -9,89 +9,57 @@ import Logo from '@/components/Logo'
 import Fireworks from '@/components/Fireworks'
 import CountUp from '@/components/CountUp'
 import { closeBrowserOrRedirect } from '@/utils/browserUtils'
-import { cartridgeRegistry } from '@/cartridges/base/CartridgeRegistry'
-import { FiveStampLotteryCartridge } from '@/cartridges/5StampLottery'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export default function Home() {
   const [customer, setCustomer] = useState<Customer | null>(null)
-  const [loading, setLoading] = useState(false)  // DEBUG: Start with false
+  const [loading, setLoading] = useState(true)
   const [isNewCustomer, setIsNewCustomer] = useState(false)
   const [completed, setCompleted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
-  const [needPhoneNumber, setNeedPhoneNumber] = useState(true)  // DEBUG: Start with true
+  const [needPhoneNumber, setNeedPhoneNumber] = useState(false)
   const [prefilledPhone, setPrefilledPhone] = useState('')
 
   useEffect(() => {
-    console.log('🚀 useEffect started')
-    
-    // 관리자 모드 체크 (쿼리 파라미터)
-    const urlParams = new URLSearchParams(window.location.search)
-    const isAdmin = urlParams.get('admin') === 'true'
-    
-    if (isAdmin) {
-      console.log('🔧 Admin mode detected, redirecting...')
-      window.location.href = '/admin'
-      return
-    }
-    
-    // 디버깅: 즉시 전화번호 입력 화면으로 이동
-    console.log('🔧 DEBUG: Immediately showing phone number input')
-    setNeedPhoneNumber(true)
-    setLoading(false)
-    
-    // // 원래 로직 (임시 비활성화)
-    // console.log('🔄 About to call checkCustomerAndProcess')
-    // checkCustomerAndProcess()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    console.log('🚀 NFC Customer Entry Point - Production Mode')
+    checkCustomerAndProcess()
+  }, [])
 
   const checkCustomerAndProcess = async () => {
     try {
-      console.log('🔍 checkCustomerAndProcess started')
-      
-      // URL 파라미터 체크
-      const urlParams = new URLSearchParams(window.location.search)
-      const skipCouponCheck = urlParams.get('skip_coupon_check') === 'true'
-      
+      console.log('🔍 Checking localStorage for existing customer...')
       const customerId = localStorage.getItem('tagstamp_customer_id')
-      console.log('🏷️ Retrieved customerId from localStorage:', customerId)
       
       if (!customerId) {
-        console.log('❌ No customerId found, showing phone number input')
-        // localStorage 없음 - 전화번호 먼저 확인
+        console.log('❌ No customer ID in localStorage - showing phone input')
         setNeedPhoneNumber(true)
         setLoading(false)
         return
       }
 
-      console.log('🔍 Customer ID found, checking database...')
-      // 기존 고객 - 정보 확인
+      console.log('✅ Customer ID found:', customerId)
+      // Verify customer exists in database
       const customerDoc = await getDoc(doc(db, 'customers', customerId))
 
       if (!customerDoc.exists()) {
-        console.log('❌ Customer not found in database, treating as new customer')
-        // 잘못된 ID - 신규 고객으로 처리
+        console.log('❌ Customer not found in database, clearing localStorage')
         localStorage.removeItem('tagstamp_customer_id')
-        setIsNewCustomer(true)
+        setNeedPhoneNumber(true)
         setLoading(false)
         return
       }
 
-      const data = { id: customerDoc.id, ...customerDoc.data() } as Customer
-      console.log('✅ Customer found in database:', data.name)
+      const customerData = { id: customerDoc.id, ...customerDoc.data() } as Customer
+      console.log('🎯 Existing customer found:', customerData.name, 'Stamps:', customerData.stamps)
 
-      // 중복 방지 로직 완전 제거 (테스트용)
-      
-      console.log('✅ Not processed yet, proceeding with stamp addition')
-
-      // 기존 고객 - 즉시 스탬프 적립
-      await addStampToExistingCustomer(data)
+      // Process stamp addition for existing customer
+      await processStampAddition(customerData)
     } catch (error) {
       console.error('🚨 Error in checkCustomerAndProcess:', error)
-      setError('System error occurred.')
+      setError('Connection failed. Please try again.')
       setLoading(false)
     }
   }
@@ -99,8 +67,9 @@ export default function Home() {
   const handlePhoneNumberCheck = async (phone: string) => {
     try {
       setLoading(true)
+      console.log('📞 Checking phone number:', phone)
       
-      // 전화번호로 기존 고객 확인
+      // Search for existing customer by phone
       const customersQuery = query(
         collection(db, 'customers'), 
         where('phone', '==', phone)
@@ -112,42 +81,31 @@ export default function Home() {
           id: existingSnapshot.docs[0].id, 
           ...existingSnapshot.docs[0].data() 
         } as Customer
-        // 기존 고객 발견 - localStorage 복구하고 스탬프 적립 진행
+        
+        console.log('✅ Existing customer found by phone:', existingCustomer.name)
+        // Restore localStorage and process stamp
         localStorage.setItem('tagstamp_customer_id', existingCustomer.id)
-        
-        // 세션 체크
-        const sessionKey = `stamp_processed_${existingCustomer.id}_${Date.now().toString().slice(0, -5)}`
-        const alreadyProcessed = sessionStorage.getItem(sessionKey)
-        
-        if (alreadyProcessed) {
-          setCustomer(existingCustomer)
-          setCompleted(true)
-          setNeedPhoneNumber(false)
-          setLoading(false)
-          return
-        }
-        
-        // 스탬프 적립
-        await addStampToExistingCustomer(existingCustomer)
+        await processStampAddition(existingCustomer)
         setNeedPhoneNumber(false)
       } else {
-        // 신규 고객 - 전화번호를 그대로 가지고 등록 폼으로
+        console.log('👤 New customer - showing registration form')
         setPrefilledPhone(phone)
         setIsNewCustomer(true)
         setNeedPhoneNumber(false)
         setLoading(false)
       }
-    } catch {
-      setError('Failed to check phone number.')
+    } catch (error) {
+      console.error('🚨 Phone check error:', error)
+      setError('Failed to verify phone number.')
       setLoading(false)
     }
   }
 
-  const addStampToExistingCustomer = async (customerData: Customer) => {
+  const processStampAddition = async (customerData: Customer) => {
     try {
-      console.log('🎯 ALWAYS adding stamp first, then checking for unused coupons...')
+      console.log('⭐ Processing stamp addition for:', customerData.name)
       
-      // 🔥 핵심: 항상 먼저 스탬프를 추가한다!
+      // Call stamp API
       const response = await fetch('/api/stamp', {
         method: 'POST',
         headers: {
@@ -156,51 +114,46 @@ export default function Home() {
         body: JSON.stringify({ customer_id: customerData.id }),
       })
 
-      const data = await response.json()
-      
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add stamp')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Stamp addition failed')
       }
 
-      // 세션 처리 완료 (테스트용으로 sessionKey 제거)
-
-      // 업데이트된 고객 정보 설정
+      const data = await response.json()
+      console.log('✅ Stamp added successfully. New count:', data.customer.stamps)
+      
       setCustomer(data.customer)
       
-      // API에서 이벤트 처리 결과 확인 (5개 스탬프 복권 이벤트)
+      // Check for 5-stamp lottery event
       if (data.eventTriggered && data.eventTriggered.redirect) {
-        console.log('🎉 Event triggered, redirecting to:', data.eventTriggered.redirect)
+        console.log('🎉 Event triggered! Redirecting to:', data.eventTriggered.redirect)
         window.location.href = data.eventTriggered.redirect
         return
       }
       
-      // 🎫 스탬프 추가 후에 미사용 쿠폰 확인하여 별도 페이지로 리다이렉트 (skip_coupon_check가 아닌 경우에만)
-      if (!skipCouponCheck) {
-        console.log('🔍 Checking for unused coupons after stamp addition...')
-        const hasUnusedCoupons = await checkAvailableCoupons(data.customer.id)
-        
-        if (hasUnusedCoupons) {
-          console.log('🎫 Found unused coupons! Redirecting to alert page.')
-          // 별도 쿠폰 알림 페이지로 리다이렉트
-          window.location.href = `/alert-coupon?customer_id=${data.customer.id}&stamps=${data.customer.stamps}`
-          return
-        }
-      } else {
-        console.log('⏭️ Skipping coupon check as requested')
+      // Check for unused coupons
+      const hasUnusedCoupons = await checkForUnusedCoupons(data.customer.id)
+      if (hasUnusedCoupons) {
+        console.log('🎫 Unused coupons found! Redirecting to coupon alert')
+        window.location.href = `/alert-coupon?customer_id=${data.customer.id}&stamps=${data.customer.stamps}`
+        return
       }
       
+      // Show success screen
       setCompleted(true)
       setLoading(false)
-    } catch {
-      setError('Failed to add stamp.')
+    } catch (error) {
+      console.error('🚨 Stamp processing error:', error)
+      setError('Failed to add stamp. Please try again.')
       setLoading(false)
     }
   }
 
   const handleNewCustomerRegistration = async (customerData: CustomerRegistration) => {
     try {
-      // 고객 등록
-      const customerResponse = await fetch('/api/customers', {
+      console.log('👤 Registering new customer:', customerData.name)
+      
+      const response = await fetch('/api/customers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -208,58 +161,46 @@ export default function Home() {
         body: JSON.stringify(customerData),
       })
       
-      if (!customerResponse.ok) {
-        const errorData = await customerResponse.json()
-        throw new Error(errorData.error || '고객 등록에 실패했습니다.')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Registration failed')
       }
       
-      const { customer: newCustomer } = await customerResponse.json()
+      const { customer: newCustomer } = await response.json()
+      console.log('🎉 New customer registered with first stamp!')
 
-      // 로컬스토리지에 저장
+      // Save to localStorage
       localStorage.setItem('tagstamp_customer_id', newCustomer.id)
-      
-      // 신규 고객은 이미 첫 스탬프가 포함되어 등록됨
       setCustomer(newCustomer)
       
-      // Check for existing unused coupons (though unlikely for new customers)
-      await checkAvailableCoupons(newCustomer.id)
+      // Check for unused coupons (unlikely for new customer but keep consistent)
+      await checkForUnusedCoupons(newCustomer.id)
       
       setIsNewCustomer(false)
       setCompleted(true)
-    } catch {
-      setError('Failed to register customer.')
+    } catch (error) {
+      console.error('🚨 Registration error:', error)
+      setError('Registration failed. Please try again.')
     }
   }
 
-  const checkAvailableCoupons = async (customerId: string): Promise<boolean> => {
+  const checkForUnusedCoupons = async (customerId: string): Promise<boolean> => {
     try {
-      console.log('🎫 [CLIENT] Checking unused coupons for customer:', customerId)
-      
       const response = await fetch(`/api/coupons/check?customer_id=${customerId}`)
-      console.log('📡 [CLIENT] API response status:', response.status)
       
       if (!response.ok) {
-        console.error('🚨 [CLIENT] API call failed:', response.status, response.statusText)
         return false
       }
       
       const data = await response.json()
-      console.log('📊 [CLIENT] API response data:', data)
-      
-      if (data.success && data.hasUnusedCoupons && data.coupons.length > 0) {
-        console.log('🎯 [CLIENT] Found unused coupons! Count:', data.coupons.length)
-        return true
-      } else {
-        console.log('❌ [CLIENT] No unused coupons found or API failed')
-        return false
-      }
+      return data.success && data.hasUnusedCoupons && data.coupons.length > 0
     } catch (error) {
-      console.error('🚨 [CLIENT] Error checking coupons:', error)
+      console.error('Coupon check error:', error)
       return false
     }
   }
 
-
+  // Loading Screen
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center px-4">
@@ -281,13 +222,14 @@ export default function Home() {
     )
   }
 
+  // Error Screen
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="bg-white rounded-2xl shadow-2xl p-8 text-center border border-red-100">
             <div className="text-6xl mb-4 animate-bounce">❌</div>
-            <div className="text-red-600 text-xl font-bold mb-2">Oops!</div>
+            <div className="text-red-600 text-xl font-bold mb-2">Connection Error</div>
             <p className="text-gray-600 mb-6 text-sm">{error}</p>
             <button
               onClick={() => window.location.reload()}
@@ -301,6 +243,7 @@ export default function Home() {
     )
   }
 
+  // Phone Number Input Screen
   if (needPhoneNumber) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
@@ -352,6 +295,7 @@ export default function Home() {
     )
   }
 
+  // New Customer Registration Screen
   if (isNewCustomer) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 px-1 py-0">
@@ -382,6 +326,7 @@ export default function Home() {
     )
   }
 
+  // Success Screen
   if (completed && customer) {
     const isFirst = customer.stamps === 1
     
@@ -488,7 +433,6 @@ export default function Home() {
                 </>
               )}
 
-
                 {!isFirst && (
                   <button
                     onClick={() => setShowDetails(true)}
@@ -514,6 +458,3 @@ export default function Home() {
 
   return null
 }
-
-// Force deployment trigger
-// Force new deployment
