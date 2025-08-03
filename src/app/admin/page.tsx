@@ -9,7 +9,9 @@ interface RecentCoupon {
   id: string
   type: string
   value: number
-  used_at: string
+  used_at?: string
+  created_at?: string
+  expires_at?: string
   customer_name: string
   customer_phone: string
 }
@@ -27,29 +29,30 @@ export default function AdminPage() {
   const [couponHistory, setCouponHistory] = useState<RecentCoupon[]>([])
   const [pendingCoupons, setPendingCoupons] = useState<RecentCoupon[]>([])
   
-  // Notification sound
+  // Notification sound (temporarily disabled)
   const playNotificationSound = () => {
-    try {
-      for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-          const oscillator = audioContext.createOscillator()
-          const gainNode = audioContext.createGain()
-          
-          oscillator.connect(gainNode)
-          gainNode.connect(audioContext.destination)
-          
-          oscillator.frequency.value = 1000 + (i * 200)
-          oscillator.type = 'sine'
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-          
-          oscillator.start()
-          oscillator.stop(audioContext.currentTime + 0.3)
-        }, i * 400)
-      }
-    } catch (error) {
-      console.log('⚠️ Audio unavailable:', error)
-    }
+    console.log('🔊 Notification sound triggered (disabled for testing)')
+    // try {
+    //   for (let i = 0; i < 3; i++) {
+    //     setTimeout(() => {
+    //       const audioContext = new AudioContext()
+    //       const oscillator = audioContext.createOscillator()
+    //       const gainNode = audioContext.createGain()
+    //       
+    //       oscillator.connect(gainNode)
+    //       gainNode.connect(audioContext.destination)
+    //       
+    //       oscillator.frequency.value = 1000 + (i * 200)
+    //       oscillator.type = 'sine'
+    //       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    //       
+    //       oscillator.start()
+    //       oscillator.stop(audioContext.currentTime + 0.3)
+    //     }, i * 400)
+    //   }
+    // } catch (error) {
+    //   console.log('⚠️ Audio unavailable:', error)
+    // }
   }
 
   // Initialize with existing data for menu access, but don't show alerts
@@ -238,7 +241,7 @@ export default function AdminPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500">
-                          {new Date(coupon.used_at).toLocaleDateString()} {new Date(coupon.used_at).toLocaleTimeString()}
+                          {coupon.used_at ? new Date(coupon.used_at).toLocaleDateString() : 'N/A'} {coupon.used_at ? new Date(coupon.used_at).toLocaleTimeString() : ''}
                         </p>
                       </div>
                     </div>
@@ -315,10 +318,10 @@ export default function AdminPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500">
-                          Created: {new Date(coupon.created_at).toLocaleDateString()}
+                          Created: {coupon.created_at ? new Date(coupon.created_at).toLocaleDateString() : 'N/A'}
                         </p>
                         <p className="text-xs text-red-500">
-                          Expires: {new Date(coupon.expires_at).toLocaleDateString()}
+                          Expires: {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -479,7 +482,7 @@ export default function AdminPage() {
                   {currentCoupon.value}% DISCOUNT
                 </div>
                 <p className="text-sm text-gray-500 mt-3">
-                  Used at: {new Date(currentCoupon.used_at).toLocaleString()}
+                  Used at: {currentCoupon.used_at ? new Date(currentCoupon.used_at).toLocaleString() : 'N/A'}
                 </p>
               </div>
               <button

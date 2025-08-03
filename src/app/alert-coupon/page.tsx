@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Logo from '@/components/Logo'
 import { closeBrowserOrRedirect } from '@/utils/browserUtils'
@@ -13,7 +13,7 @@ interface AvailableCoupon {
   expires_at: string
 }
 
-export default function AlertCouponPage() {
+function AlertCouponContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [customerId, setCustomerId] = useState<string | null>(null)
@@ -179,5 +179,13 @@ export default function AlertCouponPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AlertCouponPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AlertCouponContent />
+    </Suspense>
   )
 }
