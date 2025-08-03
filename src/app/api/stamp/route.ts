@@ -133,7 +133,20 @@ async function checkStampEvents(customer: {
     console.log('🚨 5 STAMPS DETECTED! Checking lottery eligibility...')
     
     try {
-      // 이미 lottery 이벤트에 참여했는지 확인
+      // 테스트 환경에서는 항상 이벤트 트리거 (실제 배포시 제거)
+      const isTestMode = true // TODO: 실제 배포시 false로 변경
+      
+      if (isTestMode) {
+        console.log('🧪 TEST MODE: Always triggering lottery event')
+        return {
+          type: 'lottery',
+          redirect: '/coupon',
+          message: '5개 스탬프 달성! 랜덤 쿠폰 이벤트!',
+          stamps: 5
+        }
+      }
+      
+      // 프로덕션에서는 중복 참여 체크
       const { query, where, getDocs, collection, addDoc } = await import('firebase/firestore')
       const eventsQuery = query(
         collection(db, 'events'), 

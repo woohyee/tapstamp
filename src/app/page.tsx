@@ -72,21 +72,7 @@ export default function Home() {
 
       const data = { id: customerDoc.id, ...customerDoc.data() } as Customer
 
-      // 기존 고객 - 세션에서 이미 처리되었는지 확인 (테스트용으로 10초 간격)
-      const now = new Date()
-      const timeKey = Math.floor(now.getTime() / (10 * 1000)) // 10초 단위
-      const sessionKey = `stamp_processed_${customerId}_${timeKey}` 
-      const alreadyProcessed = sessionStorage.getItem(sessionKey)
-      
-      // 테스트용으로 중복 방지 임시 비활성화
-      if (false && alreadyProcessed) {
-        console.log('🚫 Already processed, showing previous result only')
-        // 이미 이번 세션에서 스탬프 처리됨 - 정보만 표시
-        setCustomer(data)
-        setCompleted(true)
-        setLoading(false)
-        return
-      }
+      // 중복 방지 로직 완전 제거 (테스트용)
       
       console.log('✅ Not processed yet, proceeding with stamp addition')
 

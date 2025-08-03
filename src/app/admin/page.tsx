@@ -169,6 +169,11 @@ export default function AdminPage() {
       setIsLoggedIn(true)
       setNotifiedCoupons(new Set())
       setAlertCount(0)
+      
+      // 로그인 후 페이지 최상단으로 스크롤
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }, 100)
     } else {
       alert('Incorrect password.')
     }
@@ -347,11 +352,10 @@ export default function AdminPage() {
       <div className="max-w-md mx-auto">
         {/* Mobile Header */}
         <div className="flex flex-col items-center mb-6">
-          <Logo size="lg" />
-          <h1 className="text-2xl font-bold text-blue-600 mt-2">Admin Dashboard</h1>
+          <Logo size="xl" />
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="mt-3 px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 shadow-lg"
+            className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 shadow-lg"
           >
             ☰ Menu
           </button>
