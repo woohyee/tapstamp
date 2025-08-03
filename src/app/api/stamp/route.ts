@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore'
 
+// Force Node.js runtime for Firebase compatibility
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🎯 Stamp API called')

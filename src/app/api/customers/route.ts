@@ -3,6 +3,9 @@ import { db } from '@/lib/firebase'
 import { addDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { CustomerRegistration } from '@/types'
 
+// Force Node.js runtime for Firebase compatibility
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🔥 Customer registration API called')

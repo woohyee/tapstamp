@@ -17,15 +17,17 @@ export const dynamic = 'force-dynamic'
 
 export default function Home() {
   const [customer, setCustomer] = useState<Customer | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)  // DEBUG: Start with false
   const [isNewCustomer, setIsNewCustomer] = useState(false)
   const [completed, setCompleted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
-  const [needPhoneNumber, setNeedPhoneNumber] = useState(false)
+  const [needPhoneNumber, setNeedPhoneNumber] = useState(true)  // DEBUG: Start with true
   const [prefilledPhone, setPrefilledPhone] = useState('')
 
   useEffect(() => {
+    console.log('🚀 useEffect started')
+    
     // 관리자 모드 체크 (쿼리 파라미터)
     const urlParams = new URLSearchParams(window.location.search)
     const isAdmin = urlParams.get('admin') === 'true'
@@ -36,33 +38,41 @@ export default function Home() {
       return
     }
     
-    // 카트리지 초기화
-    const fiveStampLottery = new FiveStampLotteryCartridge()
-    cartridgeRegistry.register('5StampLottery', fiveStampLottery)
-    console.log('카트리지 등록 완료:', cartridgeRegistry.getRegisteredCartridges())
+    // 디버깅: 즉시 전화번호 입력 화면으로 이동
+    console.log('🔧 DEBUG: Immediately showing phone number input')
+    setNeedPhoneNumber(true)
+    setLoading(false)
     
-    checkCustomerAndProcess()
+    // // 원래 로직 (임시 비활성화)
+    // console.log('🔄 About to call checkCustomerAndProcess')
+    // checkCustomerAndProcess()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkCustomerAndProcess = async () => {
     try {
+      console.log('🔍 checkCustomerAndProcess started')
+      
       // URL 파라미터 체크
       const urlParams = new URLSearchParams(window.location.search)
       const skipCouponCheck = urlParams.get('skip_coupon_check') === 'true'
       
       const customerId = localStorage.getItem('tagstamp_customer_id')
+      console.log('🏷️ Retrieved customerId from localStorage:', customerId)
       
       if (!customerId) {
+        console.log('❌ No customerId found, showing phone number input')
         // localStorage 없음 - 전화번호 먼저 확인
         setNeedPhoneNumber(true)
         setLoading(false)
         return
       }
 
+      console.log('🔍 Customer ID found, checking database...')
       // 기존 고객 - 정보 확인
       const customerDoc = await getDoc(doc(db, 'customers', customerId))
 
       if (!customerDoc.exists()) {
+        console.log('❌ Customer not found in database, treating as new customer')
         // 잘못된 ID - 신규 고객으로 처리
         localStorage.removeItem('tagstamp_customer_id')
         setIsNewCustomer(true)
@@ -71,6 +81,7 @@ export default function Home() {
       }
 
       const data = { id: customerDoc.id, ...customerDoc.data() } as Customer
+      console.log('✅ Customer found in database:', data.name)
 
       // 중복 방지 로직 완전 제거 (테스트용)
       
@@ -78,7 +89,8 @@ export default function Home() {
 
       // 기존 고객 - 즉시 스탬프 적립
       await addStampToExistingCustomer(data)
-    } catch {
+    } catch (error) {
+      console.error('🚨 Error in checkCustomerAndProcess:', error)
       setError('System error occurred.')
       setLoading(false)
     }
