@@ -13,8 +13,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TapStamp - NFC 기반 세탁소 고객 충성도 시스템",
-  description: "NFC 태그를 통한 스탬프 적립과 리워드 시스템",
+  title: "TapStamp - NFC-based Laundromat Loyalty System",
+  description: "Stamp collection and rewards system through NFC tags for laundromat customers",
+  manifest: "/manifest.json",
+  themeColor: "#3B82F6",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "TapStamp"
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "TapStamp",
+    "application-name": "TapStamp",
+    "msapplication-TileColor": "#3B82F6",
+    "msapplication-tap-highlight": "no"
+  }
 };
 
 export default function RootLayout({
@@ -23,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="en-CA">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

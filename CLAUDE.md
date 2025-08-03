@@ -7,15 +7,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` - Start development server with Turbopack
 - `npm run build` - Build for production (includes environment variable validation)
 - `npm run build:skip-env` - Build without environment validation
+- `npm run start` - Start production server
 - `npm run check-env` - Validate required environment variables
 - `npm run lint` - Run ESLint
+
+**Testing:**
+- No formal test suite configured
+- Testing is done manually through NFC simulation and admin interface
+- Use `/api/debug/coupons` endpoint for debugging coupon states
 
 ## Environment Variables
 
 Required variables in `.env.local`:
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key  
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL (legacy reference, system uses Firebase)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key (legacy reference)
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (legacy reference)
+
+**Note:** Despite Supabase references in environment variables and package.json, the system actually uses Firebase Firestore for data persistence. The Supabase variables are maintained for legacy compatibility.
 
 The build process automatically validates these variables using `scripts/check-env.js`. For Vercel deployment, ensure these same variables are configured in the Vercel project's Environment Variables settings.
 
@@ -34,6 +42,46 @@ The build process automatically validates these variables using `scripts/check-e
 3. System checks for duplicates and creates new customer record
 4. Automatically awards 1 stamp for event participation
 5. Shows celebration animation and confirms registration
+
+## CRITICAL FCM 이해 오류 (2025-07-30)
+
+**중요한 실수와 교훈:**
+- FCM(Firebase Cloud Messaging)은 **100% 푸시(Push) 방식**입니다
+- FCM은 폴링(Polling)이 전혀 필요하지 않습니다
+- 서버 이벤트 발생 → Google FCM 서버 → 클라이언트로 즉시 푸시
+- **폴링 = 잘못된 접근**, FCM 사용 시 폴링 코드는 완전히 제거해야 함
+
+**개발 중 발생한 문제:**
+- FCM 구현 전까지 폴링으로 시간 낭비
+- FCM과 폴링을 혼합하려는 잘못된 시도
+- "폴링부터 확인하고 FCM으로 교체"라는 잘못된 계획
+
+**올바른 접근:**
+- FCM 푸시만 구현 (폴링 완전 제거)
+- 실시간 알림은 FCM 푸시로만 처리
+- 0.5초 이내 즉시 알림 가능
+
+**금지사항:** 이 프로젝트에서 폴링(Polling) 방식은 더 이상 사용하지 않음
+
+## 관리자 대시보드 실제 사용 목적 (2025-07-30 재정의)
+
+**핵심 목적**: 고객이 쿠폰을 사용할 때 관리자가 **즉시** 그 정보를 보고 **계산을 도와주는 것**
+
+**실제 사용 시나리오:**
+1. 고객: "10% 할인 쿠폰 사용하겠습니다"
+2. 관리자 화면: 🚨 **"김철수 (010-1234-5678) - 10% 할인 쿠폰 사용됨"** 즉시 표시
+3. 관리자: 쿠폰 정보 확인하여 계산 처리
+
+**UI 요구사항:**
+- **메인 화면**: 현재 사용된 쿠폰 정보만 크게 표시 (계산 도움용)
+- **메뉴**: 과거 쿠폰 사용 내역은 별도 메뉴에서 확인
+- **언어**: 모든 텍스트 영어로 변경 (캐나다 배포용)
+- **포커스**: 기술보다 **실제 업무 도움**에 집중
+
+**잘못된 현재 구현:**
+- 과거 내역이 메인 화면에 너무 많이 표시됨
+- 한국어 사용 (배포 환경에 맞지 않음)
+- 기술적 완성도에만 집중, 실용성 부족
 
 ## Architecture Overview
 
@@ -115,30 +163,68 @@ ALTER TABLE customers ADD COLUMN suspicious_activity_count INTEGER DEFAULT 0;
 - Stamp accumulation is visit-based only (no payment amount processing)
 - Store owner manually determines $10+ purchases before offering NFC
 
-### Database Architecture
+### Database Architecture (Firebase Firestore)
 - **customers**: Core customer data with stamp counts and VIP status
+  - Fields: id, name, phone, email?, stamps, vip_status, vip_expires_at?, created_at, updated_at
 - **stamps**: Individual stamp records (amount field exists but not used for validation)
-- **coupons**: Reward coupons with types (discount_10, discount_20, event_reward)
+  - Fields: id, customer_id, amount, created_at
+- **coupons**: Reward coupons with types (discount_5, discount_10, discount_15, discount_20, event_reward)
+  - Fields: id, customer_id, type, value, used, used_at?, expires_at?, source?, created_at
 - **events**: Game participation records (lottery, ladder)
+  - Fields: id, customer_id, type, result, reward_coupon_id?, created_at
 
 ### Client Configuration
-- Uses `@supabase/supabase-js` for database operations
+- Uses Firebase Firestore for database operations (not Supabase despite package.json references)
 - Local storage (`tagstamp_customer_id`) for customer identification
-- Two Supabase clients: standard client and admin client with service role
+- Session storage for duplicate prevention (`stamp_processed_${customerId}_${today}`)
+- Admin authentication via localStorage tokens (`tagstamp_admin_token`, `tagstamp_admin_expiry`)
 
 ### Type Definitions
 All data interfaces are defined in `src/types/index.ts` including Customer, Stamp, Coupon, Event, and request/response types.
 
 ### API Routes
-- `/api/stamp` - Handles stamp addition with automatic coupon issuance logic
-- `/api/customers` - Customer management operations
+- `/api/stamp` - Handles stamp addition with automatic coupon issuance logic and event triggering
+- `/api/customers` - Customer management operations (create, lookup)
+- `/api/customers/lookup` - Customer search by phone number
+- `/api/coupons/check` - Check for unused coupons for a customer
+- `/api/coupons/issue` - Issue new coupons to customers
+- `/api/coupons/use` - Mark coupons as used and notify admin
+- `/api/coupons/recent` - Get recent coupon usage for admin notifications
+- `/api/lottery` - Handle lottery scratch card game results
+- `/api/debug/coupons` - Debug endpoint for coupon data (development only)
 
 ### Admin Authentication
 - Admin access uses localStorage-based tokens with expiration (24 hours)
-- Default password: "123" (configured in admin page component)
+- Default password: "1234" (configured in admin page component)
 - Token key: `tagstamp_admin_token`, expiry key: `tagstamp_admin_expiry`
 
 The system prioritizes simplicity: visit = stamp, with business logic for rewards/VIP handled automatically in the background.
+
+## Common Development Patterns
+
+### NFC Flow Debugging
+- Check browser console for API call logs and Firebase operations
+- Use localStorage.getItem('tagstamp_customer_id') to verify customer identification
+- Check sessionStorage for duplicate prevention keys: `stamp_processed_${customerId}_${today}`
+- Admin dashboard shows real-time coupon usage for testing
+
+### Event System Development
+- All stamp-based events are handled in `/api/stamp/route.ts` via `checkStampEvents()` function
+- Direct if-statement logic preferred over complex abstraction layers
+- Events are tracked in Firebase `events` collection to prevent duplicates
+- Event responses include `redirect` property for automatic page navigation
+
+### Coupon System Workflow
+1. Lottery win → `/api/coupons/issue` → database storage
+2. NFC scan → `/api/coupons/check` → display unused coupons
+3. Customer use → `/api/coupons/use` → mark as used + admin notification
+4. Admin monitoring → `/api/coupons/recent` → real-time updates
+
+### Mobile-First Development
+- All pages designed for mobile portrait orientation
+- Touch events handled for scratch card interactions
+- `window.close()` patterns for browser exit after NFC completion
+- FloatingInput components for space-efficient mobile forms
 
 ## Page Structure and Terminology
 
@@ -205,6 +291,8 @@ The system prioritizes simplicity: visit = stamp, with business logic for reward
 
 ## Localization Policy
 
+**Service Region: Canada**
+
 **Language Requirements:**
 - **UI Text & Customer-facing Content**: Must use English only (deployed in Canada)
 - **Code Comments**: English only
@@ -219,6 +307,8 @@ The system prioritizes simplicity: visit = stamp, with business logic for reward
 - System messages, buttons, labels must be English
 - Database content should use English
 - Error handling and validation messages in English
+- SMS notifications and admin alerts should use English
+- Phone number formats should follow Canadian standards (+1)
 
 ## Random Coupon Lottery Event System
 
@@ -428,9 +518,9 @@ async function checkStampEvents(customer: { id: string; stamps: number }) {
 ## Development Lessons Learned
 
 **Key Principles for Debugging Complex Systems:**
-1. **간단한 직접 구현이 복잡한 추상화보다 낫다**
-   - 카트리지 시스템 대신 직접적인 if문 사용
-   - 과도한 엔지니어링 지양
+1. **Simple direct implementation is better than complex abstraction**
+   - Use direct if-statements instead of cartridge systems
+   - Avoid over-engineering
 
 2. **실제 사용자 행동 패턴 고려**
    - Done 버튼 → 뒤로가기 → 새로운 스캔 인식 패턴 발견
@@ -529,26 +619,33 @@ if (stamps === 15) {
 4. **Result Display**: Prize revealed after 30% of card is scratched
 5. **Coupon Usage**: Winner can use immediately (USE NOW) or save for later (Use Later)
 
-**Probability System (0-99 Index Table):**
-- **5% Empty** (indices 0-4): "OOPS!" with funny circus theme
-- **50% 5% OFF** (indices 5-54): Green 5% discount coupon
-- **30% 10% OFF** (indices 55-84): Blue 10% discount coupon  
-- **10% 15% OFF** (indices 85-94): Purple 15% discount coupon
-- **5% 20% OFF** (indices 95-99): Red 20% discount coupon
+**Probability System (0-99 Index Table) - UPDATED 2025-07-29:**
+- **55% 5% OFF** (indices 0-54): Green 5% discount coupon - 가장 일반적인 쿠폰
+- **25% 10% OFF** (indices 55-79): Blue 10% discount coupon - 중간 등급 쿠폰
+- **15% 15% OFF** (indices 80-94): Purple 15% discount coupon - 고급 쿠폰
+- **5% 20% OFF** (indices 95-99): Red 20% discount coupon - 최고급 쿠폰
 
 **Technical Implementation:**
 ```javascript
-// Simple probability logic
+// Updated probability logic - NO EMPTY RESULTS (꽝 완전 제거)
 const LOTTERY_TABLE = [
-  ...Array(5).fill('empty'),      // 5%
-  ...Array(50).fill('discount_5'), // 50%
-  ...Array(30).fill('discount_10'), // 30%
-  ...Array(10).fill('discount_15'), // 10%
-  ...Array(5).fill('discount_20')   // 5%
+  // 0-54: 5% OFF (55%)
+  ...Array(55).fill('discount_5'),
+  // 55-79: 10% OFF (25%) 
+  ...Array(25).fill('discount_10'),
+  // 80-94: 15% OFF (15%)
+  ...Array(15).fill('discount_15'),
+  // 95-99: 20% OFF (5%)
+  ...Array(5).fill('discount_20')
 ]
 const randomIndex = Math.floor(Math.random() * 100)
 const result = LOTTERY_TABLE[randomIndex]
 ```
+
+**중요한 변경사항 (2025-07-29):**
+- **꽝(Empty) 완전 제거**: 모든 고객이 5개 스탬프 달성 시 무조건 쿠폰 획득
+- **5% 할인이 메인**: 55% 확률로 가장 흔한 보상
+- **고급 쿠폰 희소성 유지**: 15%와 20% 할인은 여전히 희귀 (총 20%)
 
 **Scratch Card Features:**
 - Canvas-based real scratch interaction

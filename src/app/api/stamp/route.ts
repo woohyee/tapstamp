@@ -72,7 +72,16 @@ export async function POST(request: NextRequest) {
           Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)) : 
           customer.vip_expires_at
       })
-      console.log('✅ Customer updated successfully')
+      // 🎯 강화된 스탬프 적립 성공 알림
+      console.log('⭐⭐⭐ [STAMP ADDED] SUCCESS! ⭐⭐⭐')
+      console.log('📈 [PROGRESS] Customer:', customer.name, 'Stamps:', customer.stamps, '→', newStampCount)
+      console.log('👤 [CUSTOMER] Phone:', customer.phone, 'ID:', customer.id)
+      console.log('💾 [FIREBASE] Customer stamps updated in database')
+      console.log('🎯 [NEXT CHECK] Checking for 5-stamp lottery event...')
+      if (shouldBecomeVip) {
+        console.log('👑 [VIP UPGRADE] Customer became VIP! (30+ stamps)')
+      }
+      console.log('⭐⭐⭐ [STAMP ADDED] END ⭐⭐⭐')
       
       updatedCustomer = {
         ...customer,

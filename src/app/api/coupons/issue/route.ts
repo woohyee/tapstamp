@@ -56,7 +56,16 @@ export async function POST(request: NextRequest) {
         created_at: new Date()
       }
 
-      console.log('Coupon issued successfully:', coupon)
+      // 🎫 강화된 쿠폰 발급 알림
+      console.log('✅✅✅ [COUPON ISSUED] SUCCESS! ✅✅✅')
+      console.log('🎟️ [NEW COUPON] Coupon issued for USE LATER:', coupon)
+      console.log('👤 [CUSTOMER] ID:', body.customer_id)
+      console.log('💰 [VALUE] Discount:', value, '% OFF')
+      console.log('📅 [EXPIRES] 30 days from now')
+      console.log('💾 [DB] Saved to Firebase successfully')
+      console.log('🔍 [ADMIN] This coupon will be available for customer use')
+      console.log('✅✅✅ [COUPON ISSUED] END ✅✅✅')
+      
       return NextResponse.json({ 
         success: true,
         coupon: coupon

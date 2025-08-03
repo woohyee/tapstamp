@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
 import ScratchCard from '@/components/ScratchCard'
 
-// 0-99 index lottery table based on probability
+// 0-99 index lottery table based on probability (사용자 재설정)
 const LOTTERY_TABLE = [
-  // 0-4: empty (5%)
-  ...Array(5).fill('empty'),
-  // 5-74: 10% OFF (70%) - only discount_10 and discount_20 allowed in DB
-  ...Array(70).fill('discount_10'),
-  // 75-99: 20% OFF (25%)
-  ...Array(25).fill('discount_20')
+  // 0-54: 5% OFF (55%)
+  ...Array(55).fill('discount_5'),
+  // 55-79: 10% OFF (25%) 
+  ...Array(25).fill('discount_10'),
+  // 80-94: 15% OFF (15%)
+  ...Array(15).fill('discount_15'),
+  // 95-99: 20% OFF (5%)
+  ...Array(5).fill('discount_20')
 ]
 
 const COUPON_DESIGNS = {
@@ -34,6 +36,12 @@ const COUPON_DESIGNS = {
     message: 'Congratulations! 10% Discount Coupon!',
     bgColor: 'bg-gradient-to-br from-blue-400 to-blue-600',
     emoji: '🎊'
+  },
+  discount_15: {
+    name: '15% OFF',
+    message: 'Congratulations! 15% Discount Coupon!',
+    bgColor: 'bg-gradient-to-br from-purple-400 to-purple-600',
+    emoji: '🎪'
   },
   discount_20: {
     name: '20% OFF',
@@ -57,6 +65,7 @@ export default function CouponPage() {
   } | null>(null)
   const [couponUsed, setCouponUsed] = useState(false)
   const [scratchCompleted, setScratchCompleted] = useState(false)
+  const [couponSavedForLater, setCouponSavedForLater] = useState(false)
 
   useEffect(() => {
     // Check customer ID
@@ -86,7 +95,7 @@ export default function CouponPage() {
   }
 
   const handleUseCoupon = async () => {
-    if (!customerId || !result || result.type === 'empty') {
+    if (!customerId || !result) {
       console.log('Cannot use coupon:', { customerId, result })
       alert('Invalid coupon data')
       return
@@ -190,6 +199,60 @@ export default function CouponPage() {
     }
   }
 
+  const handleUseLater = async () => {
+    if (!customerId || !result) {
+      console.log('Cannot save coupon for later:', { customerId, result })
+      alert('Invalid coupon data')
+      return
+    }
+
+    console.log('Saving coupon for later use:', { customerId, result: result.type })
+
+    try {
+      const response = await fetch('/api/coupons/issue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customer_id: customerId,
+          type: result.type
+        }),
+      })
+
+      console.log('Use Later - Issue response status:', response.status)
+      const responseText = await response.text()
+      console.log('Use Later - Issue response body:', responseText)
+      
+      if (response.ok) {
+        let data
+        try {
+          data = JSON.parse(responseText)
+        } catch (parseError) {
+          console.error('Failed to parse issue response:', parseError)
+          alert('Server response format error')
+          return
+        }
+        
+        console.log('Coupon saved for later successfully:', data)
+        setCouponSavedForLater(true)
+      } else {
+        let errorData
+        try {
+          errorData = JSON.parse(responseText)
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
+          alert(`Failed to save coupon: ${responseText}`)
+          return
+        }
+        console.error('Save coupon failed:', errorData)
+        alert(`Failed to save coupon: ${errorData.error}`)
+      }
+    } catch (error) {
+      console.error('Coupon save error:', error)
+      alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
 
   const handleComplete = async () => {
     console.log('handleComplete called:', { result: result?.type, customerId, couponUsed })
@@ -199,8 +262,8 @@ export default function CouponPage() {
       sessionStorage.setItem(`lottery_completed_${customerId}`, 'true')
     }
     
-    // If winning result and not already used, save coupon to database for later use
-    if (result && result.type !== 'empty' && customerId && !couponUsed) {
+    // If winning result and not already used or saved, save coupon to database for later use
+    if (result && customerId && !couponUsed && !couponSavedForLater) {
       try {
         console.log('Done button: Saving winning coupon for later use:', { customerId, couponType: result.type })
         
@@ -286,22 +349,34 @@ export default function CouponPage() {
         
         {!gameStarted ? (
           <div className="mt-8 text-center">
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border-2 border-orange-200">
-              <div className="text-6xl mb-4">🎁</div>
-              <h1 className="text-2xl font-bold text-orange-600 mb-4">
-                Congratulations!
-              </h1>
-              <p className="text-lg text-gray-700 mb-6">
-You&apos;ve collected 5 stamps!<br />
-                You&apos;ve won a random coupon lottery!<br />
-                Ready to discover your prize?
-              </p>
-              <button
-                onClick={startGame}
-                className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-              >
-                🎮 PLAY
-              </button>
+            <div className="bg-white rounded-3xl shadow-2xl p-8 mb-8 border-2 border-orange-200">
+              <div className="text-center">
+                <div className="text-6xl mb-6">🎉</div>
+                
+                <h1 className="text-3xl font-bold text-orange-600 mb-4">
+                  Congratulations!
+                </h1>
+                
+                <div className="bg-gradient-to-r from-orange-100 to-yellow-100 rounded-2xl p-6 mb-6">
+                  <h2 className="text-xl font-bold text-orange-700 mb-2">
+                    5 Stamps Achievement!
+                  </h2>
+                  <p className="text-lg text-gray-700">
+                    You've won a random coupon lottery!
+                  </p>
+                </div>
+                
+                <button
+                  onClick={startGame}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-10 py-4 rounded-2xl font-bold text-xl shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95 transition-all duration-200"
+                >
+                  🎰 PLAY LOTTERY
+                </button>
+                
+                <div className="mt-4 text-sm text-gray-600">
+                  Touch to reveal your prize!
+                </div>
+              </div>
             </div>
           </div>
         ) : (
@@ -319,31 +394,47 @@ You&apos;ve collected 5 stamps!<br />
 
 {scratchCompleted && result && (
               <div className="mt-6">
-                {result.type === 'empty' ? (
-                  // Empty result - encouragement message
-                  <p className="text-lg text-gray-700 mb-6 text-center">
-                    We hope you win next time!
-                  </p>
+                {/* Always winning result - show coupon action buttons or confirmation */}
+                {couponSavedForLater ? (
+                  // Coupon saved for later confirmation
+                  <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
+                    <div className="text-green-700 text-center">
+                      <div className="text-2xl mb-2">✅</div>
+                      <h3 className="font-bold text-lg mb-2">Coupon Saved!</h3>
+                      <p className="text-sm">
+                        Your coupon has been saved successfully.<br/>
+                        You can use it anytime!
+                      </p>
+                    </div>
+                  </div>
+                ) : couponUsed ? (
+                  // Coupon already used confirmation
+                  <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
+                    <div className="text-red-700 text-center">
+                      <div className="text-2xl mb-2">✅</div>
+                      <h3 className="font-bold text-lg mb-2">Coupon Used!</h3>
+                      <p className="text-sm">Admin has been notified.</p>
+                    </div>
+                  </div>
                 ) : (
-                  // Winning result - show USE NOW button
-                  <>
+                  // Show action buttons - guaranteed winners
+                  <div className="space-y-3 mb-4">
                     <button
                       onClick={handleUseCoupon}
-                      disabled={couponUsed}
-                      className={`
-                        w-full px-6 py-3 rounded-lg font-bold transition-all duration-200 mb-3
-                        ${couponUsed 
-                          ? 'bg-red-500 text-white cursor-not-allowed' 
-                          : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl'
-                        }
-                      `}
+                      className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
-                      {couponUsed ? 'USED' : 'USE NOW'}
+                      💰 USE NOW
                     </button>
-                  </>
+                    <button
+                      onClick={handleUseLater}
+                      className="w-full px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      📅 USE LATER
+                    </button>
+                  </div>
                 )}
                 
-                {/* Done button for both cases */}
+                {/* Done button */}
                 <button
                   onClick={handleComplete}
                   className="w-full px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-all duration-200"

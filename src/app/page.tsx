@@ -24,14 +24,18 @@ export default function Home() {
   const [showDetails, setShowDetails] = useState(false)
   const [needPhoneNumber, setNeedPhoneNumber] = useState(false)
   const [prefilledPhone, setPrefilledPhone] = useState('')
-  const [availableCoupons, setAvailableCoupons] = useState<{
-    id: string;
-    value: number;
-    expires_at: string;
-  }[]>([])
-  const [showCoupons, setShowCoupons] = useState(false)
 
   useEffect(() => {
+    // 관리자 모드 체크 (쿼리 파라미터)
+    const urlParams = new URLSearchParams(window.location.search)
+    const isAdmin = urlParams.get('admin') === 'true'
+    
+    if (isAdmin) {
+      console.log('🔧 Admin mode detected, redirecting...')
+      window.location.href = '/admin'
+      return
+    }
+    
     // 카트리지 초기화
     const fiveStampLottery = new FiveStampLotteryCartridge()
     cartridgeRegistry.register('5StampLottery', fiveStampLottery)
@@ -64,18 +68,23 @@ export default function Home() {
 
       const data = { id: customerDoc.id, ...customerDoc.data() } as Customer
 
-      // 기존 고객 - 세션에서 이미 처리되었는지 확인 (더 강화된 중복 방지)
-      const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
-      const sessionKey = `stamp_processed_${customerId}_${today}` 
+      // 기존 고객 - 세션에서 이미 처리되었는지 확인 (테스트용으로 10초 간격)
+      const now = new Date()
+      const timeKey = Math.floor(now.getTime() / (10 * 1000)) // 10초 단위
+      const sessionKey = `stamp_processed_${customerId}_${timeKey}` 
       const alreadyProcessed = sessionStorage.getItem(sessionKey)
       
-      if (alreadyProcessed) {
+      // 테스트용으로 중복 방지 임시 비활성화
+      if (false && alreadyProcessed) {
+        console.log('🚫 Already processed, showing previous result only')
         // 이미 이번 세션에서 스탬프 처리됨 - 정보만 표시
         setCustomer(data)
         setCompleted(true)
         setLoading(false)
         return
       }
+      
+      console.log('✅ Not processed yet, proceeding with stamp addition')
 
       // 기존 고객 - 즉시 스탬프 적립
       await addStampToExistingCustomer(data, sessionKey)
@@ -134,7 +143,9 @@ export default function Home() {
 
   const addStampToExistingCustomer = async (customerData: Customer, sessionKey: string) => {
     try {
-      // 새로운 Stamp API 사용
+      console.log('🎯 ALWAYS adding stamp first, then checking for unused coupons...')
+      
+      // 🔥 핵심: 항상 먼저 스탬프를 추가한다!
       const response = await fetch('/api/stamp', {
         method: 'POST',
         headers: {
@@ -152,17 +163,26 @@ export default function Home() {
       // 세션에 처리 완료 표시
       sessionStorage.setItem(sessionKey, 'true')
 
+      // 업데이트된 고객 정보 설정
       setCustomer(data.customer)
       
-      // API에서 이벤트 처리 결과 확인
+      // API에서 이벤트 처리 결과 확인 (5개 스탬프 복권 이벤트)
       if (data.eventTriggered && data.eventTriggered.redirect) {
         console.log('🎉 Event triggered, redirecting to:', data.eventTriggered.redirect)
         window.location.href = data.eventTriggered.redirect
         return
       }
       
-      // Check for existing unused coupons
-      await checkAvailableCoupons(data.customer.id)
+      // 🎫 스탬프 추가 후에 미사용 쿠폰 확인하여 별도 페이지로 리다이렉트
+      console.log('🔍 Checking for unused coupons after stamp addition...')
+      const hasUnusedCoupons = await checkAvailableCoupons(data.customer.id)
+      
+      if (hasUnusedCoupons) {
+        console.log('🎫 Found unused coupons! Redirecting to alert page.')
+        // 별도 쿠폰 알림 페이지로 리다이렉트
+        window.location.href = `/alert-coupon?customer_id=${data.customer.id}&stamps=${data.customer.stamps}`
+        return
+      }
       
       setCompleted(true)
       setLoading(false)
@@ -206,56 +226,51 @@ export default function Home() {
     }
   }
 
-  const checkAvailableCoupons = async (customerId: string) => {
+  const checkAvailableCoupons = async (customerId: string): Promise<boolean> => {
     try {
-      const response = await fetch(`/api/coupons/check?customer_id=${customerId}`)
-      const data = await response.json()
+      console.log('🎫 [CLIENT] Checking unused coupons for customer:', customerId)
       
-      if (data.success && data.hasUnusedCoupons) {
-        setAvailableCoupons(data.coupons)
-        setShowCoupons(true)
+      const response = await fetch(`/api/coupons/check?customer_id=${customerId}`)
+      console.log('📡 [CLIENT] API response status:', response.status)
+      
+      if (!response.ok) {
+        console.error('🚨 [CLIENT] API call failed:', response.status, response.statusText)
+        return false
       }
-    } catch (error) {
-      console.error('Error checking coupons:', error)
-    }
-  }
-
-  const handleUseCoupon = async (couponId: string) => {
-    try {
-      const response = await fetch('/api/coupons/use', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          coupon_id: couponId,
-          customer_id: customer?.id
-        }),
-      })
-
-      if (response.ok) {
-        alert('Coupon used successfully! Admin has been notified.')
-        // Remove used coupon from the list
-        setAvailableCoupons(prev => prev.filter(c => c.id !== couponId))
-        if (availableCoupons.length <= 1) {
-          setShowCoupons(false)
-        }
+      
+      const data = await response.json()
+      console.log('📊 [CLIENT] API response data:', data)
+      
+      if (data.success && data.hasUnusedCoupons && data.coupons.length > 0) {
+        console.log('🎯 [CLIENT] Found unused coupons! Count:', data.coupons.length)
+        return true
       } else {
-        const errorData = await response.json()
-        alert(`Failed to use coupon: ${errorData.error}`)
+        console.log('❌ [CLIENT] No unused coupons found or API failed')
+        return false
       }
     } catch (error) {
-      console.error('Error using coupon:', error)
-      alert('Error using coupon. Please try again.')
+      console.error('🚨 [CLIENT] Error checking coupons:', error)
+      return false
     }
   }
+
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Processing...</p>
+          <div className="relative mb-6">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-200 border-t-orange-500 mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-2xl animate-pulse">🎯</div>
+            </div>
+          </div>
+          <p className="text-gray-700 font-medium text-lg">Processing your stamp...</p>
+          <div className="mt-4 flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          </div>
         </div>
       </div>
     )
@@ -263,16 +278,17 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-red-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="text-red-600 text-xl mb-4">Error Occurred</div>
-            <p className="text-gray-600 mb-6">{error}</p>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center border border-red-100">
+            <div className="text-6xl mb-4 animate-bounce">❌</div>
+            <div className="text-red-600 text-xl font-bold mb-2">Oops!</div>
+            <p className="text-gray-600 mb-6 text-sm">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              className="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 font-medium shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
-              Try Again
+              🔄 Try Again
             </button>
           </div>
         </div>
@@ -318,9 +334,9 @@ export default function Home() {
                   />
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-3 px-6 rounded-lg hover:from-orange-600 hover:to-yellow-600 font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-200 text-sm"
+                    className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-4 px-6 rounded-xl hover:from-orange-600 hover:to-yellow-600 font-semibold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base"
                   >
-                    Continue
+                    📱 Continue
                   </button>
                 </form>
               </div>
@@ -400,9 +416,9 @@ export default function Home() {
 
               <button
                 onClick={closeBrowserOrRedirect}
-                className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+                className="w-full px-6 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl hover:from-orange-600 hover:to-yellow-600 font-semibold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base"
               >
-                Done
+                ✅ Done
               </button>
             </div>
           </div>
@@ -467,50 +483,21 @@ export default function Home() {
                 </>
               )}
 
-{showCoupons && availableCoupons.length > 0 && (
-                  <div className="mb-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
-                    <h3 className="text-lg font-bold text-green-700 mb-3 text-center">
-                      🎟️ You have unused coupons!
-                    </h3>
-                    <div className="space-y-2">
-                      {availableCoupons.map((coupon) => (
-                        <div key={coupon.id} className="bg-white p-3 rounded-lg border border-green-200">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-bold text-green-700">
-                                {coupon.value}% OFF Coupon
-                              </div>
-                              <div className="text-xs text-gray-600">
-                                Expires: {new Date(coupon.expires_at).toLocaleDateString()}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => handleUseCoupon(coupon.id)}
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium"
-                            >
-                              USE NOW
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {!isFirst && (
                   <button
                     onClick={() => setShowDetails(true)}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 border border-orange-300 rounded-lg hover:from-orange-200 hover:to-yellow-200 font-medium mb-3 text-sm"
+                    className="w-full px-4 py-3 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 border-2 border-orange-300 rounded-xl hover:from-orange-200 hover:to-yellow-200 font-medium mb-3 text-base transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                   >
-                    View Stamp Details
+                    📊 View Stamp Details
                   </button>
                 )}
 
                 <button
                   onClick={closeBrowserOrRedirect}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 font-medium shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl hover:from-orange-600 hover:to-yellow-600 font-semibold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base pulse-animation"
                 >
-                  Done
+                  ✅ Done
                 </button>
               </div>
             </div>
@@ -524,3 +511,4 @@ export default function Home() {
 }
 
 // Force deployment trigger
+// Force new deployment

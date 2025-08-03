@@ -93,9 +93,16 @@ export default function CustomerForm({ onSubmit, initialPhone = '' }: CustomerFo
       <button
         type="submit"
         disabled={isSubmitting || !formData.name || !formData.phone}
-        className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-3 px-6 rounded-lg hover:from-orange-600 hover:to-yellow-600 disabled:from-orange-300 disabled:to-yellow-300 disabled:cursor-not-allowed font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-200 mt-2 text-sm"
+        className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-4 px-6 rounded-xl hover:from-orange-600 hover:to-yellow-600 disabled:from-orange-300 disabled:to-yellow-300 disabled:cursor-not-allowed font-bold shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 mt-4 text-base mobile-button"
       >
-        {isSubmitting ? 'Registering...' : 'Register & Get Stamp'}
+        {isSubmitting ? (
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+            <span>Registering...</span>
+          </div>
+        ) : (
+          '🎯 Register & Get Stamp'
+        )}
       </button>
     </form>
   )

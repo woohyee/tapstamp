@@ -46,7 +46,14 @@ export async function POST(request: NextRequest) {
         created_at: new Date()
       })
 
-      console.log('✅ Customer created successfully with ID:', docRef.id)
+      // 🔥 강화된 고객 등록 성공 알림
+      console.log('🎉🎉🎉 [CUSTOMER REGISTERED] SUCCESS! 🎉🎉🎉')
+      console.log('👤 [NEW CUSTOMER] Created successfully with ID:', docRef.id)
+      console.log('📝 [DETAILS] Name:', body.name, 'Phone:', body.phone)
+      console.log('💾 [FIREBASE] Customer data saved to Firebase Firestore')
+      console.log('🏆 [FIRST STAMP] Customer ready for stamp collection')
+      console.log('🔗 [CONNECTION] Firebase connection working properly')
+      console.log('🎉🎉🎉 [CUSTOMER REGISTERED] END 🎉🎉🎉')
 
       // 첫 스탬프 기록도 함께 생성
       console.log('💎 Adding first stamp record...')

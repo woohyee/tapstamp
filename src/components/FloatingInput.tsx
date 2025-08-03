@@ -49,24 +49,25 @@ export default function FloatingInput({
         disabled={disabled}
         placeholder={isFocused ? placeholder : ''}
         className={`
-          w-full px-3 py-2.5 border-2 rounded-lg bg-white
+          w-full px-4 py-3.5 border-2 rounded-xl bg-white
           transition-all duration-200 ease-in-out
-          text-base text-gray-900
+          text-base text-gray-900 mobile-input mobile-focus
           ${isFocused 
-            ? 'border-orange-400 outline-none ring-2 ring-orange-100' 
+            ? 'border-orange-500 outline-none ring-4 ring-orange-100 transform scale-[1.02]' 
             : 'border-gray-300 hover:border-gray-400'
           }
           ${disabled ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'}
+          shadow-sm hover:shadow-md focus:shadow-lg
         `}
       />
       <label
         htmlFor={id}
         className={`
-          absolute left-3 transition-all duration-200 ease-in-out
+          absolute left-4 transition-all duration-200 ease-in-out
           pointer-events-none select-none
           ${isFloating 
-            ? '-top-2.5 text-sm bg-white px-1 text-orange-600 font-medium' 
-            : 'top-2.5 text-base text-gray-500'
+            ? '-top-3 text-sm bg-white px-2 text-orange-600 font-bold rounded-md shadow-sm' 
+            : 'top-3.5 text-base text-gray-500'
           }
         `}
       >
