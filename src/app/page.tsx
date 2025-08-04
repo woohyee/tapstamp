@@ -326,7 +326,7 @@ export default function Home() {
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 flex-1 flex flex-col relative">
             <div className="absolute top-6 left-6 z-50">
               <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
-                {storeConfig.branding.businessName}
+                dodo cleaners
               </p>
             </div>
             <div className="flex-1 flex flex-col justify-center">
