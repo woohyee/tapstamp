@@ -26,7 +26,12 @@ export default function Home() {
   useEffect(() => {
     console.log('🚀 Enhanced NFC Entry Point - Production Mode')
     
-    // 🚨 CRITICAL: 단순화된 NFC 접속 검증 시스템
+    // 🚨 CRITICAL: URL 디버깅 - 정확히 어떤 URL로 접속했는지 확인
+    console.log('🔍 FULL URL:', window.location.href)
+    console.log('🔍 PATHNAME:', window.location.pathname)  
+    console.log('🔍 SEARCH:', window.location.search)
+    console.log('🔍 HASH:', window.location.hash)
+    
     const urlParams = new URLSearchParams(window.location.search)
     const dodoAccess = urlParams.get('dodo') // 단순한 dodo 파라미터
     
