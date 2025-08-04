@@ -4,21 +4,13 @@
 
 export const closeBrowserOrRedirect = () => {
   try {
-    // 🎯 정통법: 브라우저 히스토리 완전 클리어
-    console.log('🧹 Clearing browser history and URL parameters...')
+    // 🚨 좀비 문제 해결: 즉시 about:blank으로 완전 교체
+    console.log('🧹 Emergency URL replacement to stop zombie behavior...')
     
-    // 1. URL 파라미터 완전 제거
-    window.history.replaceState({}, document.title, '/')
+    // 즉시 about:blank으로 교체 (히스토리도 완전 교체)
+    window.location.replace('about:blank')
     
-    // 2. 브라우저 히스토리 완전 클리어 
-    window.history.go(-(window.history.length - 1))
-    
-    // 3. 최종적으로 about:blank으로 이동
-    setTimeout(() => {
-      window.location.replace('about:blank')
-    }, 100)
-
-    // 4. 일반적인 window.close() 시도
+    // window.close() 시도
     if (window.opener) {
       window.close()
       return
