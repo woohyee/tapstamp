@@ -240,12 +240,7 @@ export default function CouponPage() {
         setCouponSavedForLater(true)
         
         // 🚨 CRITICAL: 즉시 브라우저 닫기 (스탬프 추가 적립 방지)
-        try {
-          closeBrowserOrRedirect()
-        } catch (error) {
-          console.log('Cannot close window, redirecting to blank page:', error)
-          window.location.replace('about:blank')
-        }
+        closeBrowserOrRedirect()
       } else {
         let errorData
         try {

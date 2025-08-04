@@ -188,14 +188,14 @@ export const closeAdminSession = () => {
 
 const showAdminCompletePage = () => {
   try {
-    // 1. 일반적인 window.close() 시도
+    // 관리자도 google.com으로 통일
+    window.location.replace('https://google.com')
+    
+    // window.close() 시도
     if (window.opener) {
       window.close()
       return
     }
-
-    // 2. 빈 페이지로 이동 후 닫기 시도 (뒤로가기 제거)
-    window.location.replace('about:blank')
     
     setTimeout(() => {
       try {
