@@ -25,6 +25,19 @@ export default function Home() {
 
   useEffect(() => {
     console.log('🚀 NFC Customer Entry Point - Production Mode')
+    
+    // 🚨 CRITICAL: 접속 방법 검증 - NFC/QR/수동 접속만 허용
+    const urlParams = new URLSearchParams(window.location.search)
+    const accessMethod = urlParams.get('method')
+    
+    if (!accessMethod || !['nfc', 'qr', 'manual'].includes(accessMethod)) {
+      console.log('❌ Invalid access - Valid access method required')
+      setError('Access denied. Please use NFC card or QR code.')
+      setLoading(false)
+      return
+    }
+    
+    console.log('✅ Valid access method detected:', accessMethod)
     checkCustomerAndProcess()
   }, [])
 

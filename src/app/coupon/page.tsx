@@ -71,7 +71,12 @@ export default function CouponPage() {
     // Check customer ID
     const storedCustomerId = localStorage.getItem('tagstamp_customer_id')
     if (!storedCustomerId) {
-      router.push('/')
+      // 🚨 CRITICAL: customer_id 없을 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
+      try {
+        window.close()
+      } catch (error) {
+        window.location.replace('about:blank')
+      }
       return
     }
     setCustomerId(storedCustomerId)

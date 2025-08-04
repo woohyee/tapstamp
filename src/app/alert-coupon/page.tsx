@@ -28,7 +28,8 @@ function AlertCouponContent() {
     const stampsParam = searchParams.get('stamps')
     
     if (!customerIdParam || !stampsParam) {
-      router.push('/')
+      // 🚨 CRITICAL: 파라미터 없을 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
+      closeBrowserOrRedirect()
       return
     }
     
@@ -78,7 +79,8 @@ function AlertCouponContent() {
         setTimeout(() => {
           const allUsed = availableCoupons.every(c => c.used || c.id === couponId)
           if (allUsed) {
-            router.push('/')
+            // 🚨 CRITICAL: 모든 쿠폰 사용 완료 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
+            closeBrowserOrRedirect()
           }
         }, 3000)
       } else {
@@ -109,7 +111,8 @@ function AlertCouponContent() {
   }
 
   if (availableCoupons.length === 0) {
-    router.push('/')
+    // 🚨 CRITICAL: 쿠폰 없을 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
+    closeBrowserOrRedirect()
     return null
   }
 
@@ -178,10 +181,10 @@ function AlertCouponContent() {
                     </button>
                     
                     <button
-                      onClick={() => router.push('/')}
+                      onClick={() => closeBrowserOrRedirect()}
                       className="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                     >
-                      Continue Shopping
+                      Done
                     </button>
                   </div>
                 ) : (

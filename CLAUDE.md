@@ -592,6 +592,65 @@ if (stamps === 15) {
 
 **⚠️ 중요:** 카트리지는 좋은 패턴이지만, 긴급 상황에서는 직접 구현이 더 안전함. 시간 여유가 있을 때 차근차근 구현할 것.
 
+## Critical Development Lessons (2025-08-03)
+
+### 🚨 중대한 개발 교훈 및 실수 방지 가이드
+
+**핵심 원칙: 최소한의 수정만**
+- 문제가 된 부분 또는 명시적 요청 부분만 수정
+- 작동하는 코드는 절대 건드리지 않음
+- "개선"이라는 명목으로 불필요한 수정 금지
+
+### Issue 4: "Use Later" 버튼으로 인한 무한 스탬프 적립 문제 (2025-08-03)
+
+**Problem Description:**
+- 쿠폰 알림 페이지에서 "Use Later" 클릭 시 홈페이지로 리다이렉트
+- 홈페이지에서 localStorage 감지하여 새로운 스탬프 자동 적립
+- 6번째 → 7번째 → 8번째 스탬프 무한 적립 발생
+
+**Root Cause Analysis:**
+```javascript
+// 문제 코드 in alert-coupon/page.tsx
+const handleUseLater = () => {
+  router.push(`/?customer_id=${customerId}&stamps=${stamps}&skip_coupon_check=true`)  // ❌ 홈페이지 리다이렉트
+}
+```
+
+**Critical Business Logic Violation:**
+- **스탬프 적립 조건**: 오직 신규 등록 또는 새로운 NFC 접속에서만
+- **위반 상황**: 페이지 내 버튼 클릭으로 스탬프 추가 적립
+
+**Solution Applied:**
+```javascript
+// 해결 코드
+const handleUseLater = () => {
+  closeBrowserOrRedirect()  // ✅ 브라우저 닫기로 변경
+}
+```
+
+**Prevention Guidelines:**
+1. **스탬프 적립 보안**: 새로운 NFC 접속 외에는 절대 스탬프 적립 불가
+2. **버튼 동작 검증**: 모든 버튼이 의도하지 않은 스탬프 적립을 유발하지 않는지 확인
+3. **리다이렉트 주의**: 홈페이지로의 리다이렉트는 항상 새로운 스탬프 적립을 유발할 수 있음
+
+### 개발 방법론 교훈
+
+**❌ 잘못된 접근:**
+- 문제 분석 없이 여러 코드를 동시에 수정
+- "개선"이라는 명목으로 작동하는 코드 변경
+- 복잡한 리팩토링으로 새로운 버그 유발
+
+**✅ 올바른 접근:**
+- 정확한 문제 지점 파악 후 최소한의 수정
+- 작동하는 부분은 절대 건드리지 않음
+- 한 번에 하나의 문제만 해결
+
+**Code Modification Policy:**
+- **Only fix what's broken** - 문제가 된 부분만
+- **Only implement what's requested** - 요청받은 부분만  
+- **Never "improve" working code** - 작동하는 코드는 개선 금지
+- **Document all lessons learned** - 모든 교훈을 CLAUDE.md에 기록
+
 ## Lottery Event System (Updated Implementation)
 
 **Event Flow:**
