@@ -4,10 +4,10 @@
 
 export const closeBrowserOrRedirect = () => {
   try {
-    console.log('🧹 Redirecting to google.com...')
+    console.log('🧹 Loading google.com in current page...')
     
-    // google.com으로 리다이렉트
-    window.location.replace('https://google.com')
+    // 현재 페이지에서 바로 google.com 로드 (이전 페이지 남기지 않음)
+    window.location.href = 'https://google.com'
     
   } catch (error) {
     console.log('Browser redirect failed:', error)
@@ -22,8 +22,8 @@ export const closeAdminSession = () => {
     localStorage.removeItem('tagstamp_admin_token')  
     localStorage.removeItem('tagstamp_admin_expiry')
     
-    // 관리자도 google.com으로 통일
-    window.location.replace('https://google.com')
+    // 관리자도 현재 페이지에서 google.com 로드
+    window.location.href = 'https://google.com'
     
   } catch (error) {
     console.log('Admin session close failed:', error)

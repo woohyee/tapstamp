@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, query, where, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore'
 
-// Lottery items definition (weight-based)
+// Lottery items definition (CLAUDE.md 업데이트된 확률 - 꽝 완전 제거)
 const LOTTERY_ITEMS = [
-  { type: 'empty', name: 'OOPS!', weight: 30, value: null },
-  { type: 'discount_5', name: '5% OFF', weight: 35, value: 5 },
-  { type: 'discount_10', name: '10% OFF', weight: 20, value: 10 },
-  { type: 'discount_15', name: '15% OFF', weight: 10, value: 15 },
+  { type: 'discount_5', name: '5% OFF', weight: 55, value: 5 },
+  { type: 'discount_10', name: '10% OFF', weight: 25, value: 10 },
+  { type: 'discount_15', name: '15% OFF', weight: 15, value: 15 },
   { type: 'discount_20', name: '20% OFF', weight: 5, value: 20 }
 ]
 
@@ -67,17 +66,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Issue coupon if won
-    if (result.type !== 'empty') {
-      await addDoc(collection(db, 'coupons'), {
-        customer_id: body.customer_id,
-        type: result.type,
-        value: result.value,
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        used: false,
-        created_at: new Date()
-      })
-    }
+    // 모든 결과가 쿠폰이므로 항상 발급 (꽝 제거됨)
+    await addDoc(collection(db, 'coupons'), {
+      customer_id: body.customer_id,
+      type: result.type,
+      value: result.value,
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      used: false,
+      created_at: new Date()
+    })
 
     return NextResponse.json({ 
       success: true,
