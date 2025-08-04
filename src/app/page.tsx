@@ -26,25 +26,16 @@ export default function Home() {
   useEffect(() => {
     console.log('🚀 Enhanced NFC Entry Point - Production Mode')
     
-    // 🚨 CRITICAL: 향상된 NFC 접속 검증 시스템
+    // 🚨 CRITICAL: 단순화된 NFC 접속 검증 시스템
     const urlParams = new URLSearchParams(window.location.search)
-    const accessMethod = urlParams.get('method')
-    const nfcId = urlParams.get('nfc') // NFC 카드 고유 ID
+    const dodoAccess = urlParams.get('dodo') // 단순한 dodo 파라미터
     
-    console.log('🏷️ Access parameters:', { accessMethod, nfcId })
+    console.log('🏷️ Access parameters:', { dodoAccess })
     
-    // 접속 방법 검증
-    if (!accessMethod || !['nfc', 'qr', 'manual'].includes(accessMethod)) {
-      console.log('❌ Invalid access method:', accessMethod)
-      setError('Access denied. Please use NFC card or QR code.')
-      setLoading(false)
-      return
-    }
-    
-    // NFC 카드 ID 검증 (도도 클리너스 전용)
-    if (accessMethod === 'nfc' && nfcId !== 'dodo2024') {
-      console.log('❌ Invalid NFC card ID:', nfcId)
-      setError('Invalid NFC card. Please use correct card.')
+    // dodo 파라미터 없으면 차단
+    if (dodoAccess === null) {
+      console.log('❌ Invalid access - dodo parameter required')
+      setError('Access denied. Please use NFC card.')
       setLoading(false)
       return
     }
@@ -56,7 +47,7 @@ export default function Home() {
     const cleanUrl = window.location.pathname
     window.history.replaceState({}, document.title, cleanUrl)
     
-    console.log('✅ Valid fresh access detected:', { accessMethod, nfcId })
+    console.log('✅ Valid dodo access detected:', { dodoAccess })
     checkCustomerAndProcess()
   }, [])
 
