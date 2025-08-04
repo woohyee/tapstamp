@@ -67,6 +67,8 @@ export default function CouponPage() {
   const [couponUsed, setCouponUsed] = useState(false)
   const [scratchCompleted, setScratchCompleted] = useState(false)
   const [couponSavedForLater, setCouponSavedForLater] = useState(false)
+  const [useLaterMessage, setUseLaterMessage] = useState(false)
+  const [useNowComplete, setUseNowComplete] = useState(false)
 
   useEffect(() => {
     // Check customer ID
@@ -170,7 +172,10 @@ export default function CouponPage() {
           
           console.log('Coupon used successfully:', useData)
           setCouponUsed(true)
-          alert('Coupon used successfully! Admin has been notified.')
+          // Show completion message instead of alert
+          setTimeout(() => {
+            setUseNowComplete(true)
+          }, 1000)
         } else {
           let errorData
           try {
@@ -238,9 +243,8 @@ export default function CouponPage() {
         
         console.log('Coupon saved for later successfully:', data)
         setCouponSavedForLater(true)
-        
-        // 🚨 CRITICAL: 즉시 브라우저 닫기 (스탬프 추가 적립 방지)
-        closeBrowserOrRedirect()
+        // Show message instead of auto-exit
+        setUseLaterMessage(true)
       } else {
         let errorData
         try {
@@ -334,6 +338,88 @@ export default function CouponPage() {
         window.history.back()
       }
     }
+  }
+
+  // USE LATER Message Screen
+  if (useLaterMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-1 py-0">
+        <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl px-6 py-0 text-center border-2 border-blue-200 flex-1 flex flex-col relative">
+            <div className="absolute top-6 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
+                dodo cleaners
+              </p>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="mb-4 -mt-12">
+                <Logo size="xl" showText={false} className="justify-center h-32" />
+              </div>
+              
+              <div className="px-4">
+                <div className="text-6xl mb-4">💾</div>
+                <h1 className="text-xl font-bold mb-4 text-blue-600">
+                  Coupon Saved!
+                </h1>
+                <p className="text-gray-600 mb-6 text-base">
+                  Your coupon will be available for your next visit.
+                </p>
+                
+                <button
+                  onClick={closeBrowserOrRedirect}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-xl hover:from-blue-600 hover:to-green-600 font-semibold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base"
+                >
+                  ✅ Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // USE NOW Complete Message Screen
+  if (useNowComplete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-1 py-0">
+        <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl px-6 py-0 text-center border-2 border-green-200 flex-1 flex flex-col relative">
+            <div className="absolute top-6 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
+                dodo cleaners
+              </p>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="mb-4 -mt-12">
+                <Logo size="xl" showText={false} className="justify-center h-32" />
+              </div>
+              
+              <div className="px-4 pb-4">
+                <div className="text-6xl mb-4">💚</div>
+                <h1 className="text-xl font-black text-green-700 mb-4">
+                  Coupon Used Successfully!
+                </h1>
+                <p className="text-lg text-green-600 font-medium mb-6">
+                  Your discount has been applied.
+                  <br />
+                  Thank you for visiting!
+                </p>
+                
+                <button
+                  onClick={closeBrowserOrRedirect}
+                  className="w-full bg-gradient-to-r from-green-400 to-blue-500 text-white py-4 px-6 rounded-xl hover:from-green-500 hover:to-blue-600 font-bold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-lg"
+                >
+                  ✅ Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!customerId) {
