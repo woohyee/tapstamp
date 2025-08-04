@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
 import ScratchCard from '@/cartridges/5StampLottery/ScratchCard'
+import { closeBrowserOrRedirect } from '@/utils/browserUtils'
 
 // 0-99 index lottery table based on probability
 const LOTTERY_TABLE = [
@@ -64,7 +65,7 @@ export default function CouponPage() {
     if (!storedCustomerId) {
       // 🚨 CRITICAL: customer_id 없을 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
       try {
-        window.close()
+        closeBrowserOrRedirect()
       } catch (error) {
         window.location.href = 'about:blank'
       }
@@ -256,9 +257,9 @@ export default function CouponPage() {
     // IMPORTANT: Done button ALWAYS closes browser (after coupon processing if needed)
     try {
       if (window.opener) {
-        window.close()
+        closeBrowserOrRedirect()
       } else {
-        window.close()
+        closeBrowserOrRedirect()
         setTimeout(() => {
           window.location.href = 'about:blank'
         }, 100)

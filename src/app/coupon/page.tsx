@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
 import ScratchCard from '@/components/ScratchCard'
+import { closeBrowserOrRedirect } from '@/utils/browserUtils'
 
 // 0-99 index lottery table based on probability (사용자 재설정)
 const LOTTERY_TABLE = [
@@ -71,12 +72,8 @@ export default function CouponPage() {
     // Check customer ID
     const storedCustomerId = localStorage.getItem('tagstamp_customer_id')
     if (!storedCustomerId) {
-      // 🚨 CRITICAL: customer_id 없을 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
-      try {
-        window.close()
-      } catch (error) {
-        window.location.replace('about:blank')
-      }
+      // 🚨 CRITICAL: customer_id 없을 시 브라우저 닫기 (google.com으로 리다이렉트)
+      closeBrowserOrRedirect()
       return
     }
     setCustomerId(storedCustomerId)
@@ -244,7 +241,7 @@ export default function CouponPage() {
         
         // 🚨 CRITICAL: 즉시 브라우저 닫기 (스탬프 추가 적립 방지)
         try {
-          window.close()
+          closeBrowserOrRedirect()
         } catch (error) {
           console.log('Cannot close window, redirecting to blank page:', error)
           window.location.replace('about:blank')
@@ -327,9 +324,9 @@ export default function CouponPage() {
     // IMPORTANT: Done button ALWAYS closes browser (after coupon processing if needed)
     try {
       if (window.opener) {
-        window.close()
+        closeBrowserOrRedirect()
       } else {
-        window.close()
+        closeBrowserOrRedirect()
         setTimeout(() => {
           window.location.href = 'about:blank'
         }, 100)
