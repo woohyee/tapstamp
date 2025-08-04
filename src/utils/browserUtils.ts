@@ -4,11 +4,11 @@
 
 export const closeBrowserOrRedirect = () => {
   try {
-    // 🚨 좀비 문제 해결: 즉시 about:blank으로 완전 교체
-    console.log('🧹 Emergency URL replacement to stop zombie behavior...')
+    // 🚨 아이폰 좀비 URL 문제 해결: google.com으로 리다이렉트 후 종료
+    console.log('🧹 Redirecting to google.com to prevent zombie URL...')
     
-    // 즉시 about:blank으로 교체 (히스토리도 완전 교체)
-    window.location.replace('about:blank')
+    // google.com으로 리다이렉트 (브라우저가 기억할 URL을 google.com으로 변경)
+    window.location.replace('https://google.com')
     
     // window.close() 시도
     if (window.opener) {
