@@ -24,20 +24,39 @@ export default function Home() {
   const [prefilledPhone, setPrefilledPhone] = useState('')
 
   useEffect(() => {
-    console.log('🚀 NFC Customer Entry Point - Production Mode')
+    console.log('🚀 Enhanced NFC Entry Point - Production Mode')
     
-    // 🚨 CRITICAL: 접속 방법 검증 - NFC/QR/수동 접속만 허용
+    // 🚨 CRITICAL: 향상된 NFC 접속 검증 시스템
     const urlParams = new URLSearchParams(window.location.search)
     const accessMethod = urlParams.get('method')
+    const nfcId = urlParams.get('nfc') // NFC 카드 고유 ID
     
+    console.log('🏷️ Access parameters:', { accessMethod, nfcId })
+    
+    // 접속 방법 검증
     if (!accessMethod || !['nfc', 'qr', 'manual'].includes(accessMethod)) {
-      console.log('❌ Invalid access - Valid access method required')
+      console.log('❌ Invalid access method:', accessMethod)
       setError('Access denied. Please use NFC card or QR code.')
       setLoading(false)
       return
     }
     
-    console.log('✅ Valid access method detected:', accessMethod)
+    // NFC 카드 ID 검증 (도도 클리너스 전용)
+    if (accessMethod === 'nfc' && nfcId !== 'dodo2024') {
+      console.log('❌ Invalid NFC card ID:', nfcId)
+      setError('Invalid NFC card. Please use correct card.')
+      setLoading(false)
+      return
+    }
+    
+    // 🏷️ 정통법: 기본 NFC 접속 검증만 유지
+    console.log('✅ Valid NFC access parameters confirmed')
+    
+    // URL에서 파라미터 제거 (브락소 히스토리 오염 방지)
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, document.title, cleanUrl)
+    
+    console.log('✅ Valid fresh access detected:', { accessMethod, nfcId })
     checkCustomerAndProcess()
   }, [])
 
@@ -118,6 +137,7 @@ export default function Home() {
     try {
       console.log('⭐ Processing stamp addition for:', customerData.name)
       
+      
       // Call stamp API
       const response = await fetch('/api/stamp', {
         method: 'POST',
@@ -134,6 +154,7 @@ export default function Home() {
 
       const data = await response.json()
       console.log('✅ Stamp added successfully. New count:', data.customer.stamps)
+      
       
       setCustomer(data.customer)
       
@@ -186,9 +207,7 @@ export default function Home() {
       localStorage.setItem('tagstamp_customer_id', newCustomer.id)
       setCustomer(newCustomer)
       
-      // Check for unused coupons (unlikely for new customer but keep consistent)
-      await checkForUnusedCoupons(newCustomer.id)
-      
+      // New customers get their first stamp automatically, go to completion
       setIsNewCustomer(false)
       setCompleted(true)
     } catch (error) {
@@ -316,7 +335,7 @@ export default function Home() {
           <div className="bg-white rounded-2xl shadow-xl px-6 py-0 border border-orange-100 flex-1 flex flex-col relative">
             <div className="absolute top-6 left-6 z-50">
               <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
-                dodo cleaners
+                {storeConfig.branding.businessName}
               </p>
             </div>
             <div className="flex-1 flex flex-col justify-center">
@@ -468,6 +487,7 @@ export default function Home() {
       </div>
     )
   }
+
 
   return null
 }

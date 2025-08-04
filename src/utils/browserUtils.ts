@@ -4,14 +4,25 @@
 
 export const closeBrowserOrRedirect = () => {
   try {
-    // 1. 일반적인 window.close() 시도
+    // 🎯 정통법: 브라우저 히스토리 완전 클리어
+    console.log('🧹 Clearing browser history and URL parameters...')
+    
+    // 1. URL 파라미터 완전 제거
+    window.history.replaceState({}, document.title, '/')
+    
+    // 2. 브라우저 히스토리 완전 클리어 
+    window.history.go(-(window.history.length - 1))
+    
+    // 3. 최종적으로 about:blank으로 이동
+    setTimeout(() => {
+      window.location.replace('about:blank')
+    }, 100)
+
+    // 4. 일반적인 window.close() 시도
     if (window.opener) {
       window.close()
       return
     }
-
-    // 2. 빈 페이지로 이동 후 닫기 시도 (뒤로가기 제거)
-    window.location.replace('about:blank')
     
     // 4. 약간의 지연 후 다시 닫기 시도
     setTimeout(() => {

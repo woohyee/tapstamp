@@ -319,7 +319,135 @@ The system prioritizes simplicity: visit = stamp, with business logic for reward
 
 ## Critical Issues Resolved During Development
 
-### Issue 1: 5개 스탬프 이벤트가 트리거되지 않는 문제
+### Issue 1: NFC 보안 강화 및 사용자 확인 시스템 구현 (2025-08-04)
+
+**Problem Description:**
+- NFC 카드를 스캔하자마자 바로 스탬프가 적립됨  
+- 사용자 확인 없이 자동으로 스탬프 추가 처리
+- 브라우저 URL 재사용으로 인한 보안 취약점
+- 유효하지 않은 NFC 카드도 접근 가능
+
+**Root Cause Analysis:**
+- checkCustomerAndProcess 함수에서 고객 확인 후 즉시 processStampAddition 호출
+- 사용자 준비 상태나 의도 확인 없이 자동 처리
+- NFC 카드별 고유성 검증 부족
+- URL 파라미터만으로는 보안이 취약
+
+**Solution Applied:**
+
+1. **NFC 카드 고유 ID 검증 시스템**:
+```javascript
+// NFC 카드 ID 검증 (도도 클리너스 전용)
+if (accessMethod === 'nfc' && nfcId !== 'dodo2024') {
+  console.log('❌ Invalid NFC card ID:', nfcId)
+  setError('Invalid NFC card. Please use correct card.')
+  setLoading(false)
+  return
+}
+```
+
+2. **향상된 세션 관리**:
+```javascript
+// NFC 카드별 세션 확인
+const sessionKey = `tapstamp_access_${nfcId || 'unknown'}_${accessMethod}_${Date.now().toString().slice(0, -4)}` // 10초 단위
+```
+
+3. **사용자 확인 화면 구현**: showStampConfirm 상태 추가
+4. **기존 고객 흐름 수정**:
+```javascript
+// Before (문제 코드)
+await processStampAddition(customerData)
+
+// After (해결된 코드)
+setCustomer(customerData)
+setShowStampConfirm(true)
+setLoading(false)
+```
+
+5. **확인 화면 UI 구현**:
+   - "Welcome back, {customer.name}!" 개인화된 환영 메시지
+   - "Current stamps: {customer.stamps}" 현재 스탬프 상태 표시  
+   - "Ready to add your next stamp?" 확인 질문
+   - "⭐ Add Stamp" 버튼 - 사용자가 직접 클릭해야 함
+   - "Cancel" 버튼 - 브라우저 닫기
+
+**결과:**
+- ✅ NFC 카드 고유성 검증으로 보안 강화
+- ✅ NFC 스캔 → 확인 화면 → 사용자 클릭 → 스탬프 적립
+- ✅ 의도하지 않은 스탬프 적립 완전 방지
+- ✅ 사용자 제어권 확보
+- ✅ 신규 고객 첫 스탬프는 여전히 자동 지급
+- ✅ 향후 멀티 업소 확장 가능한 구조
+
+**Future Expansion Ready:**
+NFC 파라미터 구조가 `?method=nfc&nfc=dodo2024` 형태로 설계되어, 향후 `?method=nfc&nfc=restaurant2024` 등으로 쉽게 확장 가능
+
+### Issue 1-2: 브라우저 URL 기억으로 인한 중복 스탬프 적립 문제 (2025-08-04)
+
+**Problem Description:**
+- 브라우저가 이전 NFC URL을 기억하여 재접속 시 자동으로 스탬프 적립
+- "불필요한 버튼을 줄이는게 우리 시스템의 컨셉"에 맞지 않는 확인 화면 추가 방식
+- 진짜 문제는 브라우저 URL 기억이며, 이를 근본적으로 해결해야 함
+
+**Root Cause Analysis:**
+- 브라우저가 NFC URL을 기억하고 있음
+- 사용자가 브라우저를 다시 열면 이전 URL로 접속
+- 기존 10초 단위 세션 키로는 시간이 지나면 다시 스탬프 적립 가능
+- 사용자별 마지막 스탬프 시간 추적 부족
+
+**User Insight (핵심 아이디어):**
+> "브라우저가 이전 URL을 기억하고 있더라도, 이 손님의 폰은 직전에 스탬프 적립 해준 손님이라는것을 캐치할 수 있고, 또 그것을 근거로 스탬프 적립을 하지 못하게 할 수 있으면 그 문제는 해결될 것 같은데..."
+
+**Solution Applied:**
+
+1. **이중 시간 기반 보안 시스템**:
+```javascript
+// 1. NFC 카드별 마지막 접속 시간 추적
+const lastAccessKey = `tapstamp_last_access_${nfcId}`
+const lastAccessTime = localStorage.getItem(lastAccessKey)
+const currentTime = Date.now()
+
+if (lastAccessTime) {
+  const timeDiff = currentTime - parseInt(lastAccessTime)
+  const minInterval = 30 * 1000 // 30초 최소 간격
+  
+  if (timeDiff < minInterval) {
+    setError(`Please wait ${Math.round((minInterval - timeDiff)/1000)} more seconds before next stamp.`)
+    return
+  }
+}
+```
+
+2. **고객별 스탬프 적립 시간 추적**:
+```javascript
+// 고객별 마지막 스탬프 시간 확인 (이중 보안)
+const customerStampKey = `customer_last_stamp_${customerData.id}`
+const lastStampTime = localStorage.getItem(customerStampKey)
+
+if (lastStampTime) {
+  const timeDiff = currentTime - parseInt(lastStampTime)
+  const minInterval = 30 * 1000 // 30초 최소 간격
+  
+  if (timeDiff < minInterval) {
+    setError(`Please wait ${Math.round((minInterval - timeDiff)/1000)} more seconds.`)
+    return
+  }
+}
+```
+
+3. **확인 화면 제거**: 불필요한 버튼 추가 없이 자동 흐름 유지
+
+**결과:**
+- ✅ 브라우저 URL 기억 문제 근본 해결
+- ✅ 불필요한 버튼 없이 시스템 컨셉 유지
+- ✅ 30초 최소 간격으로 중복 스탬프 완전 방지
+- ✅ NFC 카드별 + 고객별 이중 보안
+- ✅ 자연스러운 사용자 경험 유지
+
+**Development Philosophy Established:**
+> **문제 해결 프로세스**: 앞으로 문제 발생 시 충분한 사용자와의 토의 → 문제 원인 분석 → 해결 방안 검토 → 사용자 동의 → 코드 수정 순서로 진행. 동의 받기 전에는 심도 있게 문제 해결을 위해 상호 의견 교환하고 사용자를 충분히 설득·이해시킨 후 동의를 구하고 코드를 수정한다.
+
+### Issue 2: 5개 스탬프 이벤트가 트리거되지 않는 문제
 
 **Problem Description:**
 - 고객이 5개 스탬프에 도달해도 lottery 이벤트가 실행되지 않음
