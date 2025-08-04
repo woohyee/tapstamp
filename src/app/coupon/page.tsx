@@ -69,6 +69,7 @@ export default function CouponPage() {
   const [couponSavedForLater, setCouponSavedForLater] = useState(false)
   const [useLaterMessage, setUseLaterMessage] = useState(false)
   const [useNowComplete, setUseNowComplete] = useState(false)
+  const [pendingCouponId, setPendingCouponId] = useState<string | null>(null)
 
   useEffect(() => {
     // Check customer ID
@@ -143,8 +144,8 @@ export default function CouponPage() {
           return
         }
         
-        // Use coupon immediately
-        console.log('Step 2: Using coupon immediately...')
+        // Store coupon ID for later use (when Done button is clicked)
+        console.log('Step 2: Storing coupon ID for confirmation...')
         const useResponse = await fetch('/api/coupons/use', {
           method: 'POST',
           headers: {
@@ -170,9 +171,10 @@ export default function CouponPage() {
             return
           }
           
-          console.log('Coupon used successfully:', useData)
+          console.log('Coupon ready for use - pending confirmation')
+          setPendingCouponId(data.coupon.id)
           setCouponUsed(true)
-          // Show completion message instead of alert
+          // Show completion message - user must click Done to actually use coupon
           setTimeout(() => {
             setUseNowComplete(true)
           }, 1000)
@@ -263,8 +265,8 @@ export default function CouponPage() {
     }
   }
 
-  const handleComplete = async () => {
-    console.log('handleComplete called:', { result: result?.type, customerId, couponUsed })
+  const handleGameComplete = async () => {
+    console.log('handleGameComplete called:', { result: result?.type, customerId, couponUsed })
     
     // Mark this customer as having completed lottery event in this session
     if (customerId) {
@@ -527,7 +529,7 @@ export default function CouponPage() {
                 
                 {/* Done button */}
                 <button
-                  onClick={handleComplete}
+                  onClick={handleGameComplete}
                   className="w-full px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-all duration-200"
                 >
                   Done
