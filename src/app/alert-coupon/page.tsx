@@ -21,6 +21,7 @@ function AlertCouponContent() {
   const [stamps, setStamps] = useState<number>(0)
   const [availableCoupons, setAvailableCoupons] = useState<AvailableCoupon[]>([])
   const [loading, setLoading] = useState(true)
+  const [useLaterMessage, setUseLaterMessage] = useState(false)
 
   useEffect(() => {
     // Get data from URL params
@@ -94,9 +95,8 @@ function AlertCouponContent() {
   }
 
   const handleUseLater = () => {
-    // 🚨 CRITICAL: 브라우저 닫기 (추가 스탬프 적립 방지)
-    // 쿠폰은 이미 데이터베이스에 저장되어 있음 - 다음 방문 시 다시 표시됨
-    closeBrowserOrRedirect()
+    // 🎯 사용자에게 "쿠폰 사용하지 않음" 메시지 표시
+    setUseLaterMessage(true)
   }
 
   if (loading) {
@@ -114,6 +114,46 @@ function AlertCouponContent() {
     // 🚨 CRITICAL: 쿠폰 없을 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
     closeBrowserOrRedirect()
     return null
+  }
+
+  // 🎯 "Use Later" 메시지 화면
+  if (useLaterMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-1 py-0">
+        <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl px-6 py-0 text-center border-2 border-blue-200 flex-1 flex flex-col relative">
+            <div className="absolute top-6 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
+                dodo cleaners
+              </p>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="mb-4 -mt-12">
+                <Logo size="xl" showText={false} className="justify-center h-32" />
+              </div>
+              
+              <div className="px-4">
+                <div className="text-6xl mb-4">💾</div>
+                <h1 className="text-xl font-bold mb-4 text-blue-600">
+                  Coupons Saved!
+                </h1>
+                <p className="text-gray-600 mb-6 text-base">
+                  Your coupons will be available for your next visit.
+                </p>
+                
+                <button
+                  onClick={closeBrowserOrRedirect}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-xl hover:from-blue-600 hover:to-green-600 font-semibold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base"
+                >
+                  ✅ Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
