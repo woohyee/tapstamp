@@ -22,6 +22,7 @@ function AlertCouponContent() {
   const [availableCoupons, setAvailableCoupons] = useState<AvailableCoupon[]>([])
   const [loading, setLoading] = useState(true)
   const [useLaterMessage, setUseLaterMessage] = useState(false)
+  const [useNowComplete, setUseNowComplete] = useState(false)
 
   useEffect(() => {
     // Get data from URL params
@@ -80,8 +81,8 @@ function AlertCouponContent() {
         setTimeout(() => {
           const allUsed = availableCoupons.every(c => c.used || c.id === couponId)
           if (allUsed) {
-            // 🚨 CRITICAL: 모든 쿠폰 사용 완료 시 브라우저 닫기 (파라미터 없는 홈페이지 이동 방지)
-            closeBrowserOrRedirect()
+            // 🚨 CRITICAL: 모든 쿠폰 사용 완료 시 완료 메시지 표시 (Done 버튼 대기)
+            setUseNowComplete(true)
           }
         }, 3000)
       } else {
@@ -145,6 +146,48 @@ function AlertCouponContent() {
                 <button
                   onClick={closeBrowserOrRedirect}
                   className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-xl hover:from-blue-600 hover:to-green-600 font-semibold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base"
+                >
+                  ✅ Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // USE NOW Complete Message Screen
+  if (useNowComplete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-1 py-0">
+        <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl px-6 py-0 text-center border-2 border-green-200 flex-1 flex flex-col relative">
+            <div className="absolute top-6 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
+                dodo cleaners
+              </p>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="mb-4 -mt-12">
+                <Logo size="xl" showText={false} className="justify-center h-32" />
+              </div>
+              
+              <div className="px-4 pb-4">
+                <div className="text-6xl mb-4">💚</div>
+                <h1 className="text-xl font-black text-green-700 mb-4">
+                  Coupon Used Successfully!
+                </h1>
+                <p className="text-lg text-green-600 font-medium mb-6">
+                  Your discount has been applied.
+                  <br />
+                  Thank you for visiting!
+                </p>
+                
+                <button
+                  onClick={closeBrowserOrRedirect}
+                  className="w-full bg-gradient-to-r from-green-400 to-blue-500 text-white py-4 px-6 rounded-xl hover:from-green-500 hover:to-blue-600 font-bold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-lg"
                 >
                   ✅ Done
                 </button>
