@@ -2,13 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, query, where, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore'
 
-// Lottery items definition (CLAUDE.md 업데이트된 확률 - 꽝 완전 제거)
-const LOTTERY_ITEMS = [
-  { type: 'discount_5', name: '5% OFF', weight: 55, value: 5 },
-  { type: 'discount_10', name: '10% OFF', weight: 25, value: 10 },
-  { type: 'discount_15', name: '15% OFF', weight: 15, value: 15 },
-  { type: 'discount_20', name: '20% OFF', weight: 5, value: 20 }
-]
+// 가장 단순하고 명확한 확률 구현
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,8 +48,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Perform weighted lottery draw
-    const result = performWeightedLottery()
+    // Perform simple lottery draw
+    const result = performLottery()
     
     // Update event to completed status
     await updateDoc(doc(db, 'events', event.id), {
@@ -89,22 +83,30 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function performWeightedLottery() {
-  // Calculate total weight
-  const totalWeight = LOTTERY_ITEMS.reduce((sum, item) => sum + item.weight, 0)
+function performLottery() {
+  const random = Math.random() * 100;
   
-  // Random value between 0 and totalWeight-1
-  const random = Math.floor(Math.random() * totalWeight)
+  console.log(`🎰 Lottery draw: random=${random.toFixed(2)}`)
   
-  // Select item based on weight
-  let currentWeight = 0
-  for (const item of LOTTERY_ITEMS) {
-    currentWeight += item.weight
-    if (random < currentWeight) {
-      return item
-    }
+  let discountPercent;
+  if (random < 55) {
+    discountPercent = 5;
+    console.log('Result: 5% 할인 쿠폰');
+  } else if (random < 80) {  // 55 + 25 = 80
+    discountPercent = 10;
+    console.log('Result: 10% 할인 쿠폰');
+  } else if (random < 95) {  // 80 + 15 = 95
+    discountPercent = 15;
+    console.log('Result: 15% 할인 쿠폰');
+  } else {                   // 95~100 (5% 확률)
+    discountPercent = 20;
+    console.log('Result: 20% 할인 쿠폰');
   }
   
-  // Fallback (should never reach here)
-  return LOTTERY_ITEMS[0]
+  return {
+    type: `discount_${discountPercent}`,
+    name: `${discountPercent}% OFF`,
+    weight: discountPercent === 5 ? 55 : discountPercent === 10 ? 25 : discountPercent === 15 ? 15 : 5,
+    value: discountPercent
+  }
 }
