@@ -22,7 +22,7 @@ function AlertCouponContent() {
   const [availableCoupons, setAvailableCoupons] = useState<AvailableCoupon[]>([])
   const [loading, setLoading] = useState(true)
   const [useLaterMessage, setUseLaterMessage] = useState(false)
-  // useNowComplete 제거 - 더 이상 자동 성공 페이지 없음
+  const [useNowComplete, setUseNowComplete] = useState(false)
 
   useEffect(() => {
     // Get data from URL params
@@ -71,13 +71,8 @@ function AlertCouponContent() {
       })
 
       if (response.ok) {
-        alert('Coupon used successfully! Admin has been notified.')
-        // Mark coupon as used instead of removing it
-        setAvailableCoupons(prev => prev.map(c => 
-          c.id === couponId ? { ...c, used: true } : c
-        ))
-        
-        // 자동 성공 페이지 제거 - 빨간 USED 버튼에서 Done 버튼으로 바로 진행
+        // 바로 성공 메시지 페이지로 이동 (빨간 USED 버튼 생략)
+        setUseNowComplete(true)
       } else {
         const errorData = await response.json()
         alert(`Failed to use coupon: ${errorData.error}`)
@@ -150,7 +145,47 @@ function AlertCouponContent() {
     )
   }
 
-  // USE NOW Complete 화면 완전 제거
+  // USE NOW Complete 성공 메시지 화면
+  if (useNowComplete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-1 py-0">
+        <div className="w-full max-w-sm mx-auto h-screen flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl px-6 py-0 text-center border-2 border-green-200 flex-1 flex flex-col relative">
+            <div className="absolute top-6 left-6 z-50">
+              <p className="text-base text-blue-800 font-bold bg-white/90 px-2 py-1 rounded">
+                dodo cleaners
+              </p>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="mb-4 -mt-12">
+                <Logo size="xl" showText={false} className="justify-center h-32" />
+              </div>
+              
+              <div className="px-4 pb-4">
+                <div className="text-6xl mb-4">💚</div>
+                <h1 className="text-xl font-black text-green-700 mb-4">
+                  Coupon Used Successfully!
+                </h1>
+                <p className="text-lg text-green-600 font-medium mb-6">
+                  Your discount has been applied.
+                  <br />
+                  Thank you for visiting!
+                </p>
+                
+                <button
+                  onClick={closeBrowserOrRedirect}
+                  className="w-full bg-gradient-to-r from-green-400 to-blue-500 text-white py-4 px-6 rounded-xl hover:from-green-500 hover:to-blue-600 font-bold shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-lg"
+                >
+                  ✅ Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 px-1 py-0">
